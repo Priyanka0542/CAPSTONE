@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Galaxy Theme CSS Variables */
 :root {
@@ -11,18 +13,6 @@
   --meteor-red: #FF5C7A;
   --starlight: #F1EFFF;
   --dust-gray: #7C7A99;
-}
-
-@theme {
-  --color-void-black: #05010F;
-  --color-nebula-navy: #12102A;
-  --color-comet-violet: #8A5CFF;
-  --color-aurora-teal: #00F0C0;
-  --color-pulsar-pink: #FF6FA8;
-  --color-solar-amber: #FFB84D;
-  --color-meteor-red: #FF5C7A;
-  --color-starlight: #F1EFFF;
-  --color-dust-gray: #7C7A99;
 }
 
 * {
