@@ -1,0 +1,115 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import Starfield from '../components/common/Starfield';
+
+export default function Signup() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { signup } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      setError('Password must contain uppercase, lowercase, and a number');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signup(name, email, password);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.message || 'Signup failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
+      <Starfield />
+      <div className="card w-full max-w-md animate-fadeIn relative z-10">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-starlight mb-1">
+            <span className="text-comet-violet">Future</span>Era
+          </h1>
+          <p className="text-sm text-dust-gray">AI Career Path Simulator</p>
+        </div>
+
+        <h2 className="text-lg font-semibold text-starlight mb-6">Create your account</h2>
+
+        {error && (
+          <div className="mb-4 p-3 rounded-lg" style={{ background: 'rgba(255, 92, 122, 0.1)', border: '1px solid rgba(255, 92, 122, 0.2)' }}>
+            <p className="text-sm text-meteor-red">{error}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm text-dust-gray mb-1">Name</label>
+            <input
+              type="text"
+              className="input-field"
+              placeholder="Your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              id="signup-name"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-dust-gray mb-1">Email</label>
+            <input
+              type="email"
+              className="input-field"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              id="signup-email"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-dust-gray mb-1">Password</label>
+            <input
+              type="password"
+              className="input-field"
+              placeholder="Min 8 chars, uppercase + lowercase + number"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              id="signup-password"
+            />
+          </div>
+
+          <button type="submit" className="btn-primary w-full" disabled={loading} id="signup-submit">
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                Creating account...
+              </span>
+            ) : (
+              'Sign up'
+            )}
+          </button>
+        </form>
+
+        <p className="text-sm text-dust-gray text-center mt-6">
+          Already have an account?{' '}
+          <Link to="/login" className="text-comet-violet hover:underline">Log in</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
