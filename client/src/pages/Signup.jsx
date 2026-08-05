@@ -4,6 +4,8 @@ import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import Starfield from '../components/common/Starfield';
 
+import ThemeToggle from '../components/common/ThemeToggle';
+
 export default function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -41,15 +43,18 @@ export default function Signup() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       <Starfield />
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
       <div className="card w-full max-w-md animate-fadeIn relative z-10">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-starlight mb-1">
+          <h1 className="text-3xl font-extrabold text-starlight mb-1 tracking-tight">
             <span className="text-comet-violet">Future</span>Era
           </h1>
-          <p className="text-sm text-dust-gray">AI Career Path Simulator</p>
+          <p className="text-sm font-semibold text-dust-gray">AI Career Path Simulator</p>
         </div>
 
-        <h2 className="text-lg font-semibold text-starlight mb-6">Create your account</h2>
+        <h2 className="text-lg font-bold text-starlight mb-6">Create your account</h2>
 
         {error && (
           <div className="mb-4 p-3 rounded-lg" style={{ background: 'rgba(255, 92, 122, 0.1)', border: '1px solid rgba(255, 92, 122, 0.2)' }}>

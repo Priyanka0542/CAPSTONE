@@ -13,7 +13,7 @@ export default function ProgressRing({ progress, size = 80, strokeWidth = 6, col
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.06)"
+          stroke="var(--card-border)"
           strokeWidth={strokeWidth}
         />
         {/* Progress ring */}
@@ -31,7 +31,7 @@ export default function ProgressRing({ progress, size = 80, strokeWidth = 6, col
         />
       </svg>
       <span
-        className="absolute text-sm font-semibold"
+        className="absolute text-sm font-extrabold"
         style={{ color }}
       >
         {Math.round(pct)}%

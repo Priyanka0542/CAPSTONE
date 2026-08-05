@@ -4,7 +4,8 @@ import api from '../api/axios';
 import Starfield from '../components/common/Starfield';
 import ComparisonChart from '../components/comparison/ComparisonChart';
 import ProgressRing from '../components/common/ProgressRing';
-import { calculateProgress } from '../utils/pathUtils';
+import ThemeToggle from '../components/common/ThemeToggle';
+import { calculateProgress, calculateTimelineStats } from '../utils/pathUtils';
 
 export default function Compare() {
   const [paths, setPaths] = useState([]);
@@ -49,7 +50,7 @@ export default function Compare() {
     }
   };
 
-  const riskColors = { low: '#00F0C0', medium: '#FFB84D', high: '#FF5C7A' };
+  const riskColors = { low: 'var(--success)', medium: 'var(--warning)', high: 'var(--danger)' };
   const formatINR = (num) => {
     if (num >= 10000000) return `₹${(num / 10000000).toFixed(1)}Cr`;
     if (num >= 100000) return `₹${(num / 100000).toFixed(1)}L`;
@@ -61,16 +62,19 @@ export default function Compare() {
       <Starfield />
       <div className="relative z-10">
         {/* Nav */}
-        <nav className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <Link to="/dashboard" className="text-xl font-bold text-starlight">
+        <nav className="flex items-center justify-between px-6 py-4 shadow-sm" style={{ background: 'var(--card)', borderBottom: '1px solid var(--border)' }}>
+          <Link to="/dashboard" className="text-2xl font-extrabold text-starlight tracking-tight hover:opacity-90 transition-opacity">
             <span className="text-comet-violet">Future</span>Era
           </Link>
-          <Link to="/dashboard" className="btn-secondary text-xs py-1.5 px-3">← Dashboard</Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link to="/dashboard" className="btn-secondary text-xs py-1.5 px-3">← Dashboard</Link>
+          </div>
         </nav>
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <h1 className="text-xl font-bold text-starlight mb-2">Compare career paths</h1>
-          <p className="text-sm text-dust-gray mb-6">Select 2-3 paths to compare side by side.</p>
+          <h1 className="text-2xl font-extrabold text-starlight mb-2 tracking-tight">Compare career paths</h1>
+          <p className="text-sm font-semibold text-dust-gray mb-6">Select 2-3 paths to compare side by side.</p>
 
           {loading ? (
             <div className="flex justify-center py-12">
@@ -78,7 +82,7 @@ export default function Compare() {
             </div>
           ) : paths.length < 2 ? (
             <div className="card text-center py-12">
-              <p className="text-dust-gray mb-4">You need at least 2 active paths to compare.</p>
+              <p className="text-dust-gray font-medium mb-4">You need at least 2 active or completed paths to compare.</p>
               <Link to="/dashboard" className="btn-primary">Go to dashboard</Link>
             </div>
           ) : (
@@ -87,29 +91,32 @@ export default function Compare() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 {paths.map((p) => {
                   const isSelected = selected.includes(p._id);
+                  const stats = calculateTimelineStats(p);
                   return (
                     <button
                       key={p._id}
                       onClick={() => toggleSelect(p._id)}
-                      className="card text-left transition-all"
+                      className="card text-left transition-all cursor-pointer"
                       style={{
-                        borderColor: isSelected ? 'var(--comet-violet)' : undefined,
-                        background: isSelected ? 'rgba(138, 92, 255, 0.06)' : undefined,
+                        borderColor: isSelected ? 'var(--primary)' : undefined,
+                        background: isSelected ? 'var(--surface-secondary)' : undefined,
                       }}
                     >
                       <div className="flex items-center gap-3">
                         <div
                           className="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0"
                           style={{
-                            borderColor: isSelected ? 'var(--comet-violet)' : 'rgba(255,255,255,0.15)',
-                            background: isSelected ? 'var(--comet-violet)' : 'transparent',
+                            borderColor: isSelected ? 'var(--primary)' : 'var(--input-border)',
+                            background: isSelected ? 'var(--primary)' : 'transparent',
                           }}
                         >
-                          {isSelected && <span className="text-white text-xs">✓</span>}
+                          {isSelected && <span className="text-white text-xs font-bold">✓</span>}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-starlight truncate">{p.goalTitle}</p>
-                          <p className="text-[10px] text-dust-gray">{p.estimatedMonths}mo · {formatINR(p.estimatedCostINR)}</p>
+                          <p className="text-sm font-bold text-starlight truncate">{p.goalTitle}</p>
+                          <p className="text-xs font-medium text-dust-gray">
+                            {stats.targetDurationText} · {formatINR(p.estimatedCostINR)}
+                          </p>
                         </div>
                       </div>
                     </button>
@@ -132,34 +139,58 @@ export default function Compare() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                     {comparisonData.map((p) => {
                       const progress = calculateProgress(p);
+                      const stats = calculateTimelineStats(p);
                       return (
                         <div key={p._id} className="card">
                           <div className="flex items-start justify-between mb-4">
-                            <h3 className="text-sm font-semibold text-starlight">{p.goalTitle}</h3>
+                            <div className="min-w-0 flex-1 pr-2">
+                              <h3 className="text-base font-extrabold text-starlight truncate mb-1">{p.goalTitle}</h3>
+                              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full border border-card-border" style={{ background: 'var(--surface-secondary)', color: 'var(--text-primary)' }}>
+                                {stats.timelineHealth}
+                              </span>
+                            </div>
                             <ProgressRing progress={progress} size={48} strokeWidth={3} />
                           </div>
+
                           <div className="space-y-2">
                             <div className="flex justify-between text-xs">
-                              <span className="text-dust-gray">Duration</span>
-                              <span className="text-starlight font-medium">{p.estimatedMonths} months</span>
+                              <span className="text-dust-gray font-semibold uppercase tracking-wider">Target Duration</span>
+                              <span className="text-starlight font-bold">{stats.targetDurationText}</span>
                             </div>
                             <div className="flex justify-between text-xs">
-                              <span className="text-dust-gray">Cost</span>
-                              <span className="text-starlight font-medium">{formatINR(p.estimatedCostINR)}</span>
+                              <span className="text-dust-gray font-semibold uppercase tracking-wider">Deadline</span>
+                              <span className="text-starlight font-bold">{stats.targetCompletionDateText}</span>
                             </div>
                             <div className="flex justify-between text-xs">
-                              <span className="text-dust-gray">Salary</span>
-                              <span className="text-aurora-teal font-medium">{formatINR(p.estimatedOutcomeSalaryINR)}/yr</span>
+                              <span className="text-dust-gray font-semibold uppercase tracking-wider">Time Remaining</span>
+                              <span className="text-starlight font-bold">{stats.timeRemainingText}</span>
                             </div>
                             <div className="flex justify-between text-xs">
-                              <span className="text-dust-gray">Risk</span>
-                              <span className="font-medium" style={{ color: riskColors[p.riskLevel] }}>
+                              <span className="text-dust-gray font-semibold uppercase tracking-wider">Weekly Workload</span>
+                              <span className="text-comet-violet font-bold">{stats.estimatedWeeklyHours} hrs/wk</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-dust-gray font-semibold uppercase tracking-wider">Current Pace</span>
+                              <span className="text-starlight font-bold">{stats.currentPace}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-dust-gray font-semibold uppercase tracking-wider">Estimated Cost</span>
+                              <span className="text-starlight font-bold">{formatINR(p.estimatedCostINR)}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-dust-gray font-semibold uppercase tracking-wider">Est. Annual Salary</span>
+                              <span className="text-aurora-teal font-bold">{formatINR(p.estimatedOutcomeSalaryINR)}/yr</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-dust-gray font-semibold uppercase tracking-wider">Risk</span>
+                              <span className="font-bold" style={{ color: riskColors[p.riskLevel] }}>
                                 {p.riskLevel}
                               </span>
                             </div>
                           </div>
-                          <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                            <p className="text-[10px] text-dust-gray leading-relaxed">{p.assumptions}</p>
+
+                          <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+                            <p className="text-xs text-dust-gray font-medium leading-relaxed">{p.assumptions}</p>
                           </div>
                         </div>
                       );

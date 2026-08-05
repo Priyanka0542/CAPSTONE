@@ -19,30 +19,32 @@ export default function TodayTask({ todayTask, activities, onCheckin }) {
   if (!todayTask && !hasCheckedIn) {
     return (
       <div className="card">
-        <h3 className="text-sm font-semibold text-starlight mb-2">Today's task</h3>
-        <p className="text-sm text-dust-gray">No active tasks. Create a career path to get started!</p>
+        <h3 className="text-sm font-bold text-starlight mb-2">Today's task</h3>
+        <p className="text-sm font-medium text-dust-gray">No active tasks. Create a career path to get started!</p>
       </div>
     );
   }
 
   return (
     <div className="card">
-      <h3 className="text-sm font-semibold text-starlight mb-3">Today's task</h3>
+      <h3 className="text-sm font-bold text-starlight mb-3">Today's task</h3>
 
       {hasCheckedIn ? (
-        <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: 'rgba(0, 240, 192, 0.06)' }}>
-          <span className="text-aurora-teal text-lg">✓</span>
+        <div className="flex items-center gap-3 p-3 rounded-lg border" style={{ background: 'var(--secondary-surface)', borderColor: 'var(--aurora-teal)' }}>
+          <span className="text-aurora-teal text-xl font-bold">✓</span>
           <div>
-            <p className="text-sm text-starlight font-medium">Checked in today!</p>
-            <p className="text-xs text-dust-gray mt-0.5">{activities[0]?.taskDescription}</p>
+            <p className="text-sm text-starlight font-bold">Checked in today!</p>
+            <p className="text-xs font-medium text-dust-gray mt-0.5">{activities[0]?.taskDescription}</p>
           </div>
         </div>
       ) : todayTask ? (
         <div>
-          <div className="mb-3">
-            <p className="text-[10px] text-dust-gray mb-1">{todayTask.pathTitle} — Month {todayTask.month}</p>
-            <p className="text-sm text-starlight">{todayTask.task}</p>
-            <p className="text-xs text-dust-gray mt-1">{todayTask.milestone}</p>
+          <div className="mb-3 p-3 rounded-lg border" style={{ background: 'var(--secondary-surface)', borderColor: 'var(--card-border)' }}>
+            <p className="text-[10px] font-bold text-comet-violet uppercase tracking-wider mb-1">
+              {todayTask.pathTitle} — Month {todayTask.month}
+            </p>
+            <p className="text-sm font-bold text-starlight">{todayTask.task}</p>
+            <p className="text-xs font-medium text-dust-gray mt-1">{todayTask.milestone}</p>
           </div>
           <button
             className="btn-primary w-full"

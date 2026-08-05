@@ -11,19 +11,20 @@ export default function BadgeCard({ badge, isNew = false }) {
 
   return (
     <div
-      className={`flex flex-col items-center gap-2 p-3 rounded-xl text-center transition-all ${
+      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl text-center transition-all ${
         isNew ? 'animate-badge-pop' : ''
       }`}
       style={{
-        background: 'rgba(255, 111, 168, 0.06)',
-        border: '1px solid rgba(255, 111, 168, 0.15)',
+        background: 'var(--secondary-surface)',
+        border: '1px solid var(--pulsar-pink)',
         minWidth: '100px',
+        boxShadow: '0 2px 8px rgba(255, 111, 168, 0.12)',
       }}
     >
       <span className="text-2xl">{info.emoji}</span>
-      <span className="text-xs font-medium text-pulsar-pink">{info.label}</span>
+      <span className="text-xs font-bold text-pulsar-pink">{info.label}</span>
       {badge.earnedAt && (
-        <span className="text-[10px] text-dust-gray">
+        <span className="text-[10px] font-medium text-dust-gray">
           {new Date(badge.earnedAt).toLocaleDateString()}
         </span>
       )}

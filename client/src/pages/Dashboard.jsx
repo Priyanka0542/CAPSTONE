@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usePaths } from '../hooks/usePaths';
 import { useStreak, useActivity, useBadges } from '../hooks/useStreak';
+import { Link } from "react-router-dom";
 import Starfield from '../components/common/Starfield';
 import PathCard from '../components/dashboard/PathCard';
 import StreakHeatmap from '../components/dashboard/StreakHeatmap';
@@ -10,6 +11,8 @@ import GoalInputForm from '../components/onboarding/GoalInputForm';
 import BadgeCard from '../components/common/BadgeCard';
 import Modal from '../components/common/Modal';
 import Toast from '../components/common/Toast';
+
+import ThemeToggle from '../components/common/ThemeToggle';
 
 export default function Dashboard() {
   const { user, logout, fetchUser } = useAuth();
@@ -93,14 +96,15 @@ export default function Dashboard() {
       <Starfield />
       <div className="relative z-10">
         {/* Nav */}
-        <nav className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <h1 className="text-xl font-bold text-starlight">
+        <nav className="flex items-center justify-between px-6 py-4 shadow-sm" style={{ background: 'var(--card-bg)', borderBottom: '1px solid var(--card-border)' }}>
+          <Link to="/dashboard" className="text-2xl font-extrabold text-starlight tracking-tight hover:opacity-90 transition-opacity">
             <span className="text-comet-violet">Future</span>Era
-          </h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-dust-gray hidden sm:block">Hey, {user?.name}</span>
-            <a href="/compare" className="btn-secondary text-xs py-1.5 px-3">Compare</a>
-            <button onClick={logout} className="text-sm text-dust-gray hover:text-meteor-red transition-colors">
+          </Link>
+          <div className="flex items-center gap-4 sm:gap-6">
+            <span className="text-sm font-semibold text-dust-gray hidden sm:block">Hey, {user?.name}</span>
+            <ThemeToggle />
+            <Link to="/compare" className="btn-secondary text-xs py-1.5 px-3">Compare</Link>
+            <button onClick={logout} className="text-sm font-medium text-dust-gray hover:text-meteor-red transition-colors cursor-pointer">
               Log out
             </button>
           </div>
@@ -132,8 +136,8 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left: Paths */}
               <div className="lg:col-span-2 space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-starlight">Active career paths</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-extrabold text-starlight tracking-tight">Active career paths</h2>
                   <button className="btn-primary text-xs py-1.5" onClick={() => setShowNewGoal(true)}>
                     + New goal
                   </button>
@@ -158,16 +162,16 @@ export default function Dashboard() {
                         ))}
                       </div>
                     ) : (
-                      <div className="card text-center py-6 text-dust-gray text-sm">
+                      <div className="card text-center py-6 text-dust-gray text-sm font-medium">
                         No active career paths. Create a new goal above!
                       </div>
                     )}
 
                     {/* Completed Paths Section */}
                     {completedPaths.length > 0 && (
-                      <div className="space-y-4 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div className="space-y-4 pt-6" style={{ borderTop: '1px solid var(--card-border)' }}>
                         <div className="flex items-center justify-between">
-                          <h2 className="text-lg font-semibold text-aurora-teal flex items-center gap-2">
+                          <h2 className="text-xl font-extrabold text-aurora-teal tracking-tight flex items-center gap-2">
                             <span>🏆</span> Completed Paths ({completedPaths.length})
                           </h2>
                         </div>

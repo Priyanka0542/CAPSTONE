@@ -12,6 +12,13 @@ exports.createPath = async (req, res, next) => {
     // Call LLM
     const roadmapData = await generateRoadmap(goal, profile || {});
 
+    // Extract target timeline
+    const targetDuration = profile?.targetDuration || req.body.targetDuration || roadmapData.estimatedMonths;
+    const durationUnit = profile?.durationUnit || req.body.durationUnit || 'Months';
+    const monthsToDays = durationUnit === 'Years' ? targetDuration * 365 : targetDuration * 30;
+    const targetCompletionDate = profile?.targetCompletionDate || req.body.targetCompletionDate || new Date(Date.now() + monthsToDays * 86400000);
+    const estimatedWeeklyHours = roadmapData.estimatedWeeklyHours || 20;
+
     // Create career path
     const careerPath = await CareerPath.create({
       userId,
@@ -19,6 +26,10 @@ exports.createPath = async (req, res, next) => {
       estimatedMonths: roadmapData.estimatedMonths,
       estimatedCostINR: roadmapData.estimatedCostINR,
       estimatedOutcomeSalaryINR: roadmapData.estimatedOutcomeSalaryINR,
+      estimatedWeeklyHours,
+      targetDuration,
+      durationUnit,
+      targetCompletionDate,
       riskLevel: roadmapData.riskLevel,
       assumptions: roadmapData.assumptions,
       roadmap: roadmapData.roadmap.map((step) => ({

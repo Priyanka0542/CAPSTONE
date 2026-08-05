@@ -7,15 +7,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        'void-black': '#05010F',
-        'nebula-navy': '#12102A',
-        'comet-violet': '#8A5CFF',
-        'aurora-teal': '#00F0C0',
-        'pulsar-pink': '#FF6FA8',
-        'solar-amber': '#FFB84D',
-        'meteor-red': '#FF5C7A',
-        'starlight': '#F1EFFF',
-        'dust-gray': '#7C7A99',
+        'void-black': 'var(--background)',
+        'nebula-navy': 'var(--surface)',
+        'comet-violet': 'var(--primary)',
+        'aurora-teal': 'var(--success)',
+        'pulsar-pink': 'var(--pulsar-pink)',
+        'solar-amber': 'var(--warning)',
+        'meteor-red': 'var(--danger)',
+        'starlight': 'var(--text-primary)',
+        'dust-gray': 'var(--text-secondary)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],

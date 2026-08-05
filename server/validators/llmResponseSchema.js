@@ -5,6 +5,7 @@ const llmResponseSchema = z.object({
   estimatedMonths: z.number().positive(),
   estimatedCostINR: z.number().min(0),
   estimatedOutcomeSalaryINR: z.number().min(0),
+  estimatedWeeklyHours: z.number().min(1).max(100).optional(),
   riskLevel: z.enum(['low', 'medium', 'high']),
   assumptions: z.string(),
   roadmap: z.array(

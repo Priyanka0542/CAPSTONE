@@ -2,12 +2,18 @@ const { z } = require('zod');
 
 const createPathSchema = z.object({
   goal: z.string().min(3, 'Goal must be at least 3 characters').max(500),
+  targetDuration: z.number().positive().optional(),
+  durationUnit: z.enum(['Months', 'Years']).optional(),
+  targetCompletionDate: z.string().optional(),
   profile: z
     .object({
       age: z.number().int().min(10).max(100).optional(),
       degree: z.string().max(200).optional(),
       budget: z.number().min(0).optional(),
       country: z.string().max(100).optional(),
+      targetDuration: z.number().positive().optional(),
+      durationUnit: z.enum(['Months', 'Years']).optional(),
+      targetCompletionDate: z.string().optional(),
     })
     .optional(),
 });

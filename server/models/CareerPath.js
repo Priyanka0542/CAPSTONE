@@ -60,6 +60,31 @@ const careerPathSchema = new mongoose.Schema(
       budget: Number,
       country: { type: String, default: 'India' },
     },
+    targetDuration: {
+      type: Number,
+    },
+    durationUnit: {
+      type: String,
+      enum: ['Months', 'Years'],
+      default: 'Months',
+    },
+    targetCompletionDate: {
+      type: Date,
+    },
+    estimatedWeeklyHours: {
+      type: Number,
+      default: 20,
+    },
+    currentPace: {
+      type: String,
+      enum: ['Ahead of Schedule', 'On Track', 'Slightly Behind', 'Behind Schedule'],
+      default: 'On Track',
+    },
+    timelineHealth: {
+      type: String,
+      enum: ['🟢 On Track', '🟡 Needs Faster Progress', '🔴 High Risk of Missing Deadline'],
+      default: '🟢 On Track',
+    },
   },
   {
     timestamps: true,
