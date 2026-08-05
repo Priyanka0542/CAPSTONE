@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import Starfield from '../components/common/Starfield';
-import ProgressRing from '../common/ProgressRing';
+import ProgressRing from '../components/common/ProgressRing';
 import Toast from '../components/common/Toast';
 import ThemeToggle from '../components/common/ThemeToggle';
 import { calculateProgress, calculateTimelineStats } from '../utils/pathUtils';
