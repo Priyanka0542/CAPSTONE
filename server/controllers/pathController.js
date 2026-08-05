@@ -202,8 +202,9 @@ exports.completeMilestone = async (req, res, next) => {
     const newBadges = await checkAndAwardBadges(userId, { milestoneCompleted: true });
 
     // Auto-complete path if all milestones done
-    if (completedMonths === path.roadmap.length) {
+    if (completedMonths === path.roadmap.length && path.roadmap.length > 0) {
       path.status = 'completed';
+      path.monthsElapsed = path.estimatedMonths;
       await path.save();
       const completionBadges = await checkAndAwardBadges(userId, { pathCompleted: true });
       newBadges.push(...completionBadges);

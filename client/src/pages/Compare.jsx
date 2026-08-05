@@ -4,6 +4,7 @@ import api from '../api/axios';
 import Starfield from '../components/common/Starfield';
 import ComparisonChart from '../components/comparison/ComparisonChart';
 import ProgressRing from '../components/common/ProgressRing';
+import { calculateProgress } from '../utils/pathUtils';
 
 export default function Compare() {
   const [paths, setPaths] = useState([]);
@@ -16,7 +17,7 @@ export default function Compare() {
     const fetchPaths = async () => {
       try {
         const { data } = await api.get('/paths');
-        setPaths(data.paths.filter((p) => p.status === 'active'));
+        setPaths(data.paths.filter((p) => p.status !== 'deleted'));
       } catch {
         // silent
       } finally {
@@ -130,7 +131,7 @@ export default function Compare() {
                   {/* Side-by-side cards */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                     {comparisonData.map((p) => {
-                      const progress = p.estimatedMonths > 0 ? (p.monthsElapsed / p.estimatedMonths) * 100 : 0;
+                      const progress = calculateProgress(p);
                       return (
                         <div key={p._id} className="card">
                           <div className="flex items-start justify-between mb-4">

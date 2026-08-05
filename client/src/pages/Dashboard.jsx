@@ -16,14 +16,16 @@ export default function Dashboard() {
   const { paths, loading: pathsLoading, createPath, updatePath, deletePath } = usePaths();
   const { currentStreak, longestStreak, history, fetchStreaks } = useStreak();
   const { todayTask, activities, checkin, fetchToday } = useActivity();
-  const { badges } = useBadges();
+  const { badges, fetchBadges } = useBadges();
 
   const [showNewGoal, setShowNewGoal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const activePaths = paths.filter((p) => p.status === 'active');
+  const activePaths = paths.filter((p) => p.status === 'active' || p.status === 'paused');
+  const completedPaths = paths.filter((p) => p.status === 'completed');
+  const hasAnyPaths = activePaths.length > 0 || completedPaths.length > 0;
 
   const handleCreatePath = async (goal, profile) => {
     setCreating(true);
@@ -32,6 +34,8 @@ export default function Dashboard() {
       setShowNewGoal(false);
       setToast({ message: 'Career path created!', type: 'success' });
       if (data.newBadges?.length > 0) {
+        window.dispatchEvent(new CustomEvent('badges-updated'));
+        fetchBadges();
         setTimeout(() => {
           setToast({ message: `🏆 New badge: ${data.newBadges[0].badgeType}`, type: 'badge' });
         }, 1500);
@@ -73,6 +77,8 @@ export default function Dashboard() {
       fetchUser();
       setToast({ message: `Streak: ${data.streak?.currentStreak} days! 🔥`, type: 'success' });
       if (data.newBadges?.length > 0) {
+        window.dispatchEvent(new CustomEvent('badges-updated'));
+        fetchBadges();
         setTimeout(() => {
           setToast({ message: `🏆 New badge: ${data.newBadges[0].badgeType}`, type: 'badge' });
         }, 1500);
@@ -102,7 +108,7 @@ export default function Dashboard() {
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           {/* Empty state */}
-          {!pathsLoading && activePaths.length === 0 && !showNewGoal && (
+          {!pathsLoading && !hasAnyPaths && !showNewGoal && (
             <div className="text-center py-20 animate-fadeIn">
               <div className="text-6xl mb-4">🚀</div>
               <h2 className="text-2xl font-bold text-starlight mb-2">Welcome to FutureEra</h2>
@@ -122,12 +128,12 @@ export default function Dashboard() {
           </Modal>
 
           {/* Main layout */}
-          {(activePaths.length > 0 || pathsLoading) && (
+          {(hasAnyPaths || pathsLoading) && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left: Paths */}
               <div className="lg:col-span-2 space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-starlight">Your career paths</h2>
+                  <h2 className="text-lg font-semibold text-starlight">Active career paths</h2>
                   <button className="btn-primary text-xs py-1.5" onClick={() => setShowNewGoal(true)}>
                     + New goal
                   </button>
@@ -138,17 +144,47 @@ export default function Dashboard() {
                     <div className="spinner" style={{ width: 32, height: 32 }} />
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {activePaths.map((path) => (
-                      <PathCard
-                        key={path._id}
-                        path={path}
-                        isFocus={user?.focusPathId === path._id}
-                        onSetFocus={handleSetFocus}
-                        onDelete={(id) => setDeleteConfirm(id)}
-                      />
-                    ))}
-                  </div>
+                  <>
+                    {activePaths.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {activePaths.map((path) => (
+                          <PathCard
+                            key={path._id}
+                            path={path}
+                            isFocus={user?.focusPathId === path._id}
+                            onSetFocus={handleSetFocus}
+                            onDelete={(id) => setDeleteConfirm(id)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="card text-center py-6 text-dust-gray text-sm">
+                        No active career paths. Create a new goal above!
+                      </div>
+                    )}
+
+                    {/* Completed Paths Section */}
+                    {completedPaths.length > 0 && (
+                      <div className="space-y-4 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-lg font-semibold text-aurora-teal flex items-center gap-2">
+                            <span>🏆</span> Completed Paths ({completedPaths.length})
+                          </h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {completedPaths.map((path) => (
+                            <PathCard
+                              key={path._id}
+                              path={path}
+                              isFocus={false}
+                              onSetFocus={null}
+                              onDelete={(id) => setDeleteConfirm(id)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* AI Disclaimer */}

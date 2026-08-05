@@ -1,5 +1,6 @@
 import ProgressRing from '../common/ProgressRing';
 import { useNavigate } from 'react-router-dom';
+import { calculateProgress } from '../../utils/pathUtils';
 
 const riskColors = {
   low: 'var(--aurora-teal)',
@@ -9,9 +10,8 @@ const riskColors = {
 
 export default function PathCard({ path, isFocus, onSetFocus, onDelete }) {
   const navigate = useNavigate();
-  const progress = path.estimatedMonths > 0
-    ? (path.monthsElapsed / path.estimatedMonths) * 100
-    : 0;
+  const progress = calculateProgress(path);
+  const isCompleted = path.status === 'completed' || progress === 100;
 
   const formatINR = (num) => {
     if (num >= 10000000) return `₹${(num / 10000000).toFixed(1)}Cr`;
@@ -24,18 +24,23 @@ export default function PathCard({ path, isFocus, onSetFocus, onDelete }) {
     <div
       className="card cursor-pointer group"
       style={{
-        borderColor: isFocus ? 'rgba(138, 92, 255, 0.4)' : undefined,
+        borderColor: isCompleted ? 'rgba(0, 240, 192, 0.4)' : isFocus ? 'rgba(138, 92, 255, 0.4)' : undefined,
       }}
       onClick={() => navigate(`/path/${path._id}`)}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h3 className="text-base font-semibold text-starlight truncate">{path.goalTitle}</h3>
-            {isFocus && (
+            {isFocus && !isCompleted && (
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-comet-violet/20 text-comet-violet whitespace-nowrap">
                 Focus
+              </span>
+            )}
+            {isCompleted && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-aurora-teal/20 text-aurora-teal whitespace-nowrap">
+                ✓ Completed
               </span>
             )}
           </div>
@@ -71,21 +76,27 @@ export default function PathCard({ path, isFocus, onSetFocus, onDelete }) {
       {/* Current milestone */}
       {path.roadmap && path.roadmap.length > 0 && (
         <div className="pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          {(() => {
-            const current = path.roadmap.find((m) => !m.completed) || path.roadmap[path.roadmap.length - 1];
-            return (
-              <p className="text-xs text-dust-gray">
-                <span className="text-comet-violet font-medium">Month {current.month}:</span>{' '}
-                {current.milestone}
-              </p>
-            );
-          })()}
+          {isCompleted ? (
+            <p className="text-xs text-aurora-teal font-medium flex items-center gap-1">
+              ✓ All milestones completed
+            </p>
+          ) : (
+            (() => {
+              const current = path.roadmap.find((m) => !m.completed) || path.roadmap[path.roadmap.length - 1];
+              return (
+                <p className="text-xs text-dust-gray">
+                  <span className="text-comet-violet font-medium">Month {current.month}:</span>{' '}
+                  {current.milestone}
+                </p>
+              );
+            })()
+          )}
         </div>
       )}
 
       {/* Actions */}
       <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        {!isFocus && (
+        {!isFocus && !isCompleted && onSetFocus && (
           <button
             className="btn-secondary text-xs py-1.5 px-3"
             onClick={(e) => { e.stopPropagation(); onSetFocus(path._id); }}

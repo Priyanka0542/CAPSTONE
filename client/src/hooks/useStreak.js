@@ -73,6 +73,11 @@ export function useBadges() {
 
   useEffect(() => {
     fetchBadges();
+    const handleBadgesUpdated = () => {
+      fetchBadges();
+    };
+    window.addEventListener('badges-updated', handleBadgesUpdated);
+    return () => window.removeEventListener('badges-updated', handleBadgesUpdated);
   }, [fetchBadges]);
 
   return { badges, loading, fetchBadges };

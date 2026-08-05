@@ -5,6 +5,7 @@ import api from '../api/axios';
 import Starfield from '../components/common/Starfield';
 import ProgressRing from '../components/common/ProgressRing';
 import Toast from '../components/common/Toast';
+import { calculateProgress } from '../utils/pathUtils';
 
 export default function PathDetail() {
   const { id } = useParams();
@@ -33,6 +34,7 @@ export default function PathDetail() {
       setPath(data.path);
       setToast({ message: 'Milestone completed! 🎯', type: 'success' });
       if (data.newBadges?.length > 0) {
+        window.dispatchEvent(new CustomEvent('badges-updated'));
         setTimeout(() => {
           setToast({ message: `🏆 Badge earned: ${data.newBadges[0].badgeType}`, type: 'badge' });
         }, 1500);
@@ -40,6 +42,35 @@ export default function PathDetail() {
     } catch {
       setToast({ message: 'Failed to complete milestone', type: 'error' });
     }
+  };
+
+  const handleExportReport = () => {
+    if (!path) return;
+    const isCompleted = path.status === 'completed' || calculateProgress(path) === 100;
+    const reportText = `FUTUREERA CAREER PATH REPORT
+Goal: ${path.goalTitle}
+Status: ${isCompleted ? 'Completed' : 'In Progress'}
+Progress: ${calculateProgress(path)}%
+Duration: ${path.estimatedMonths} months
+Estimated Cost: ${formatINR(path.estimatedCostINR)}
+Projected Outcome Salary: ${formatINR(path.estimatedOutcomeSalaryINR)}/yr
+Risk Level: ${path.riskLevel}
+
+Assumptions:
+${path.assumptions}
+
+ROADMAP MILESTONES:
+${path.roadmap.map((step) => `[Month ${step.month}] ${step.milestone} ${step.completed ? '(Completed)' : '(In Progress)'}\nTasks:\n${step.tasks.map((t) => `  - ${t}`).join('\n')}`).join('\n\n')}
+`;
+
+    const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${path.goalTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_report.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setToast({ message: 'Report exported successfully! 📄', type: 'success' });
   };
 
   const riskColors = { low: 'var(--aurora-teal)', medium: 'var(--solar-amber)', high: 'var(--meteor-red)' };
@@ -60,7 +91,9 @@ export default function PathDetail() {
 
   if (!path) return null;
 
-  const progress = path.estimatedMonths > 0 ? (path.monthsElapsed / path.estimatedMonths) * 100 : 0;
+  const progress = calculateProgress(path);
+  const isCompleted = path.status === 'completed' || progress === 100;
+  const completedMilestones = path.roadmap.filter((m) => m.completed).length;
 
   // Chart data for roadmap visualization
   const chartData = path.roadmap.map((step) => ({
@@ -77,7 +110,12 @@ export default function PathDetail() {
           <Link to="/dashboard" className="text-xl font-bold text-starlight">
             <span className="text-comet-violet">Future</span>Era
           </Link>
-          <Link to="/dashboard" className="btn-secondary text-xs py-1.5 px-3">← Dashboard</Link>
+          <div className="flex items-center gap-3">
+            <button onClick={handleExportReport} className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1">
+              📄 Export report
+            </button>
+            <Link to="/dashboard" className="btn-secondary text-xs py-1.5 px-3">← Dashboard</Link>
+          </div>
         </nav>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -86,7 +124,7 @@ export default function PathDetail() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-xl font-bold text-starlight mb-2">{path.goalTitle}</h1>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <span
                     className="text-xs font-medium px-2.5 py-1 rounded-full"
                     style={{
@@ -96,8 +134,14 @@ export default function PathDetail() {
                   >
                     {path.riskLevel} risk
                   </span>
-                  <span className="text-xs text-dust-gray">
-                    {path.status === 'completed' ? '✓ Completed' : `${path.monthsElapsed}/${path.estimatedMonths} months`}
+                  <span
+                    className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                      isCompleted
+                        ? 'bg-aurora-teal/20 text-aurora-teal'
+                        : 'bg-comet-violet/20 text-starlight'
+                    }`}
+                  >
+                    {isCompleted ? '✓ Completed' : `${completedMilestones}/${path.roadmap.length} milestones completed (${progress}%)`}
                   </span>
                 </div>
               </div>

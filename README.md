@@ -130,7 +130,7 @@ npm run dev
 
 ### Step 6: Open in browser
 
-Go to **http://localhost:5173** — you should see the FutureEra login page with the Galaxy dark theme!
+Go to **c** — you should see the FutureEra login page with the Galaxy dark theme!
 
 Sign up with any email/password to get started.
 

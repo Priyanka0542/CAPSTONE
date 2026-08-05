@@ -2,6 +2,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
+import { calculateProgress } from '../../utils/pathUtils';
 
 const riskColors = { low: '#00F0C0', medium: '#FFB84D', high: '#FF5C7A' };
 
@@ -37,7 +38,7 @@ export default function ComparisonChart({ paths }) {
     { metric: 'Cost', ...Object.fromEntries(paths.map((p, i) => [`path${i}`, normalize(p.estimatedCostINR, maxCost)])) },
     { metric: 'Salary', ...Object.fromEntries(paths.map((p, i) => [`path${i}`, normalize(p.estimatedOutcomeSalaryINR, maxSalary)])) },
     { metric: 'Risk', ...Object.fromEntries(paths.map((p, i) => [`path${i}`, p.riskLevel === 'high' ? 90 : p.riskLevel === 'medium' ? 50 : 20])) },
-    { metric: 'Progress', ...Object.fromEntries(paths.map((p, i) => [`path${i}`, p.estimatedMonths > 0 ? Math.round((p.monthsElapsed / p.estimatedMonths) * 100) : 0])) },
+    { metric: 'Progress', ...Object.fromEntries(paths.map((p, i) => [`path${i}`, calculateProgress(p)])) },
   ];
 
   const pathColors = ['#8A5CFF', '#00F0C0', '#FF6FA8'];
