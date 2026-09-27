@@ -60,7 +60,7 @@ async function generateRoadmap(goal, profile = {}) {
 
       const chatCompletion = await groq.chat.completions.create({
         messages,
-        model: 'llama-3.3-70b-versatile',
+        model: env.GROQ_MODEL,
         temperature: 0.4,
         max_tokens: 4000,
         response_format: { type: 'json_object' },

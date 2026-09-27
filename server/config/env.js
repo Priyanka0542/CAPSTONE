@@ -10,6 +10,7 @@ const env = {
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
   GROQ_API_KEY: process.env.GROQ_API_KEY,
+  GROQ_MODEL: process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
 };
 
