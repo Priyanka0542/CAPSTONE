@@ -126,4 +126,71 @@ function buildUserMessage(goal, profile) {
   return message;
 }
 
-module.exports = { generateRoadmap };
+async function mentorChat({ careerPath, userMessage, conversationHistory }) {
+  try {
+    const completedMilestones = careerPath.roadmap.filter(m => m.completed);
+    const remainingMilestones = careerPath.roadmap.filter(m => !m.completed);
+    const totalMilestones = careerPath.roadmap.length;
+    const progressPercentage = totalMilestones > 0 ? Math.round((completedMilestones.length / totalMilestones) * 100) : 0;
+
+    const completedList = completedMilestones.map(m => `  ✓ Month ${m.month}: ${m.milestone}`).join('\n') || '  (none yet)';
+    const remainingList = remainingMilestones.map(m => `  ○ Month ${m.month}: ${m.milestone}`).join('\n') || '  (all completed!)';
+
+    const systemPrompt = `You are a mentor roleplaying as the user's future self — someone who has already achieved the career goal: "${careerPath.goalTitle}".
+Speak in first person as their future self. Be encouraging but honest. Give practical, specific advice based on the data below.
+
+IMPORTANT: You are an AI simulation for planning purposes, not a real prediction of the future. Do not guarantee outcomes.
+
+=== USER'S ACTUAL DATA ===
+Goal: ${careerPath.goalTitle}
+Status: ${careerPath.status}
+Progress: ${progressPercentage}% (${completedMilestones.length}/${totalMilestones} milestones)
+Target Duration: ${careerPath.targetDuration || careerPath.estimatedMonths} ${careerPath.durationUnit || 'Months'}
+Estimated Months: ${careerPath.estimatedMonths}
+Months Elapsed: ${careerPath.monthsElapsed || 0}
+Current Pace: ${careerPath.currentPace || 'On Track'}
+Timeline Health: ${careerPath.timelineHealth || 'Unknown'}
+Weekly Workload: ${careerPath.estimatedWeeklyHours || 20} hrs/wk
+Estimated Cost: ₹${careerPath.estimatedCostINR?.toLocaleString('en-IN') || 'N/A'}
+Expected Annual Salary: ₹${careerPath.estimatedOutcomeSalaryINR?.toLocaleString('en-IN') || 'N/A'}/year
+Risk Level: ${careerPath.riskLevel || 'N/A'}
+
+COMPLETED MILESTONES:
+${completedList}
+
+REMAINING MILESTONES:
+${remainingList}
+
+ASSUMPTIONS:
+${careerPath.assumptions || 'N/A'}
+=== END DATA ===
+
+Guidelines:
+- Encourage based on actual progress, not fabricated achievements.
+- If the user has completed milestones, acknowledge them specifically.
+- If behind schedule, gently suggest what to prioritize.
+- Suggest what to focus on next based on the remaining milestones.
+- Keep responses concise (2-4 paragraphs max).
+- Do NOT claim the user completed something the data shows as incomplete.`;
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...(conversationHistory || []),
+      { role: 'user', content: userMessage }
+    ];
+
+    const chatCompletion = await groq.chat.completions.create({
+      messages,
+      model: env.GROQ_MODEL,
+      temperature: 0.7,
+      max_tokens: 1024,
+    });
+
+    return chatCompletion.choices[0]?.message?.content || '';
+  } catch (error) {
+    console.error('LLM mentorChat failed:', error);
+    throw error;
+  }
+}
+
+module.exports = { generateRoadmap, mentorChat };

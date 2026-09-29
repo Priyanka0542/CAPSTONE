@@ -1,6 +1,6 @@
 const CareerPath = require('../models/CareerPath');
 const User = require('../models/User');
-const { generateRoadmap } = require('../services/llmService');
+const { generateRoadmap, mentorChat } = require('../services/llmService');
 const { checkAndAwardBadges } = require('../services/badgeService');
 
 // POST /api/paths — Create a new career path (triggers LLM)
@@ -222,6 +222,93 @@ exports.completeMilestone = async (req, res, next) => {
     }
 
     res.json({ message: 'Milestone completed.', path, newBadges });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/paths/:id/mentor-chat
+exports.mentorChat = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    const { id } = req.params;
+    const { userMessage, conversationHistory } = req.body;
+
+    const careerPath = await CareerPath.findOne({ _id: id, userId });
+    if (!careerPath) {
+      return res.status(404).json({ message: 'Career path not found.' });
+    }
+
+    const response = await mentorChat({ careerPath, userMessage, conversationHistory });
+    res.json({ message: response });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/paths/benchmark?goalTitle=...
+exports.getPeerBenchmark = async (req, res, next) => {
+  try {
+    const { goalTitle } = req.query;
+    if (!goalTitle) {
+      return res.status(400).json({ message: 'goalTitle is required.' });
+    }
+
+    const results = await CareerPath.aggregate([
+      {
+        $match: {
+          goalTitle: { $regex: new RegExp(goalTitle.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'), 'i') },
+          status: { $ne: 'deleted' },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          userIds: { $addToSet: '$userId' },
+          totalPaths: { $sum: 1 },
+          avgMonthsElapsed: { $avg: '$monthsElapsed' },
+          avgEstimatedMonths: { $avg: '$estimatedMonths' },
+          paces: { $push: '$currentPace' },
+          roadmaps: { $push: '$roadmap' },
+        },
+      },
+    ]);
+
+    const result = results[0];
+    if (!result || !result.userIds || result.userIds.length < 2) {
+      return res.json({ insufficient: true, userCount: result?.userIds?.length || 0 });
+    }
+
+    // Calculate average progress
+    let totalProgress = 0;
+    result.roadmaps.forEach(roadmap => {
+      const completed = roadmap.filter(m => m.completed).length;
+      const total = roadmap.length;
+      if (total > 0) {
+        totalProgress += completed / total;
+      }
+    });
+    const averageProgress = Math.round((totalProgress / result.roadmaps.length) * 100);
+
+    // Calculate pace label
+    const paceCounts = {};
+    let maxCount = 0;
+    let mostCommonPace = 'on_track';
+    result.paces.forEach(pace => {
+      if (!pace) return;
+      paceCounts[pace] = (paceCounts[pace] || 0) + 1;
+      if (paceCounts[pace] > maxCount) {
+        maxCount = paceCounts[pace];
+        mostCommonPace = pace;
+      }
+    });
+
+    res.json({
+      userCount: result.userIds.length,
+      averageProgress,
+      paceLabel: mostCommonPace,
+      insufficient: false
+    });
   } catch (error) {
     next(error);
   }

@@ -14,7 +14,8 @@ const signupSchema = z.object({
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-    ),
+    )
+    .regex(/^[A-Z]/, 'Password must start with a capital letter'),
 });
 
 const loginSchema = z.object({
@@ -35,7 +36,8 @@ const resetPasswordSchema = z.object({
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-    ),
+    )
+    .regex(/^[A-Z]/, 'Password must start with a capital letter'),
 });
 
 module.exports = {

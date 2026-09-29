@@ -16,16 +16,23 @@ export default function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
 
+  // Password validation rules
+  const passwordRules = [
+    { label: 'Starts with a capital letter', test: (pw) => /^[A-Z]/.test(pw) },
+    { label: 'At least 8 characters', test: (pw) => pw.length >= 8 },
+    { label: 'Contains an uppercase letter', test: (pw) => /[A-Z]/.test(pw) },
+    { label: 'Contains a lowercase letter', test: (pw) => /[a-z]/.test(pw) },
+    { label: 'Contains a number', test: (pw) => /\d/.test(pw) },
+  ];
+
+  const allRulesPassed = password.length > 0 && passwordRules.every((rule) => rule.test(password));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-      setError('Password must contain uppercase, lowercase, and a number');
+    if (!allRulesPassed) {
+      setError('Please meet all password requirements');
       return;
     }
 
@@ -108,9 +115,24 @@ export default function Signup() {
                 {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
               </button>
             </div>
+
+            {/* Real-time password requirements */}
+            {password.length > 0 && (
+              <ul className="password-requirements">
+                {passwordRules.map((rule, i) => {
+                  const passed = rule.test(password);
+                  return (
+                    <li key={i} className={`password-req-item ${passed ? 'valid' : 'invalid'}`}>
+                      <span className="password-req-icon">{passed ? '✓' : '✕'}</span>
+                      {rule.label}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
 
-          <button type="submit" className="btn-primary w-full" disabled={loading} id="signup-submit">
+          <button type="submit" className="btn-primary w-full" disabled={loading || (password.length > 0 && !allRulesPassed)} id="signup-submit">
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
@@ -130,3 +152,4 @@ export default function Signup() {
     </div>
   );
 }
+
