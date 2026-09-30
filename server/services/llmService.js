@@ -2,7 +2,9 @@ const Groq = require('groq-sdk');
 const env = require('../config/env');
 const { llmResponseSchema } = require('../validators/llmResponseSchema');
 
-const groq = new Groq({ apiKey: env.GROQ_API_KEY });
+const groq = new Groq({
+  apiKey: env.GROQ_API_KEY,
+});
 
 const SYSTEM_PROMPT = `You are a career decision-support assistant. You do not predict the future.
 You generate a realistic, assumption-based roadmap for a stated career goal,
@@ -10,7 +12,7 @@ using general knowledge of Indian education/career systems (or the user's stated
 
 CRITICAL INSTRUCTIONS FOR SALARY ESTIMATES:
 - "estimatedOutcomeSalaryINR" MUST ALWAYS represent the ESTIMATED ANNUAL SALARY OR ESTIMATED ANNUAL INCOME IN INR (e.g., 600000 for ₹6 LPA, 1200000 for ₹12 LPA, 10000000 for ₹1 Cr).
-- NEVER RETURN MONTHLY SALARY OR STIPEND (e.g., never return 56100 for an IAS officer, return their total annual compensation like 1000000 or 1200000).
+- NEVER RETURN MONTHLY SALARY OR STIPEND.
 - ALL CAREERS (private jobs, government jobs, IAS/UPSC, higher studies, entrepreneurship, freelancing, etc.) MUST RETURN ANNUAL SALARY/INCOME ONLY.
 
 CRITICAL INSTRUCTIONS FOR TIMELINE & ROADMAP:
@@ -31,13 +33,18 @@ Respond ONLY with valid JSON matching this schema, no preamble, no markdown:
   "riskLevel": "low" | "medium" | "high",
   "assumptions": string,
   "roadmap": [
-    { "month": number, "milestone": string, "tasks": [string, string, string] }
+    {
+      "month": number,
+      "milestone": string,
+      "tasks": [string, string, string]
+    }
   ]
 }`;
 
 /**
- * Generates a career roadmap using Groq (Llama-3).
- * Validates response with Zod. Retries once if output violates schema or salary units.
+ * Generates a career roadmap using Groq.
+ * Validates the response with Zod.
+ * Retries once if the output violates the schema or salary rules.
  */
 async function generateRoadmap(goal, profile = {}) {
   const userMessage = buildUserMessage(goal, profile);
@@ -46,52 +53,77 @@ async function generateRoadmap(goal, profile = {}) {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const messages = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userMessage },
+        {
+          role: 'system',
+          content: SYSTEM_PROMPT,
+        },
+        {
+          role: 'user',
+          content: userMessage,
+        },
       ];
 
-      // On retry, add explicit instruction enforcing annual salary & schema
+      // On retry, add explicit instructions.
       if (attempt === 1) {
         messages.push({
           role: 'user',
-          content: 'RETRY STRICT WARNING: Ensure estimatedOutcomeSalaryINR is strictly the ANNUAL salary in INR (e.g. 600000 for 6 LPA, not monthly). Ensure valid JSON matching schema.',
+          content:
+            'RETRY STRICT WARNING: Ensure estimatedOutcomeSalaryINR is strictly the ANNUAL salary in INR (e.g. 600000 for 6 LPA, not monthly). Ensure valid JSON matching the required schema.',
         });
       }
 
       const chatCompletion = await groq.chat.completions.create({
         messages,
-        model: env.GROQ_MODEL,
+
+        // Use a currently configured Groq model.
+        model: 'llama-4-scout-17b-16e-instruct',
+
         temperature: 0.4,
         max_tokens: 4000,
-        response_format: { type: 'json_object' },
+
+        response_format: {
+          type: 'json_object',
+        },
       });
 
       const rawContent = chatCompletion.choices[0]?.message?.content;
+
       if (!rawContent) {
         throw new Error('Empty response from LLM');
       }
 
       let parsed;
+
       try {
         parsed = JSON.parse(rawContent);
-      } catch {
+      } catch (parseError) {
         throw new Error('LLM returned invalid JSON');
       }
 
-      // Check for suspicious monthly salary (e.g., < 100,000 INR annual for full careers)
-      if (typeof parsed.estimatedOutcomeSalaryINR === 'number' && parsed.estimatedOutcomeSalaryINR < 100000 && parsed.estimatedOutcomeSalaryINR > 0) {
-        // Multiply by 12 if LLM still gave a monthly salary, or trigger retry on attempt 0
+      // Check for suspiciously low salary values.
+      // This helps detect cases where the AI returned a monthly salary
+      // instead of an annual salary.
+      if (
+        typeof parsed.estimatedOutcomeSalaryINR === 'number' &&
+        parsed.estimatedOutcomeSalaryINR < 100000 &&
+        parsed.estimatedOutcomeSalaryINR > 0
+      ) {
         if (attempt === 0) {
-          throw new Error(`Inconsistent monthly salary detected (${parsed.estimatedOutcomeSalaryINR}). Retrying for annual format...`);
+          throw new Error(
+            `Inconsistent monthly salary detected (${parsed.estimatedOutcomeSalaryINR}). Retrying for annual format...`
+          );
         } else {
-          parsed.estimatedOutcomeSalaryINR = parsed.estimatedOutcomeSalaryINR * 12;
+          // If the second attempt still gives a monthly value,
+          // convert it to annual.
+          parsed.estimatedOutcomeSalaryINR =
+            parsed.estimatedOutcomeSalaryINR * 12;
         }
       }
 
-      // Validate with Zod
+      // Validate response with Zod.
       const validated = llmResponseSchema.parse(parsed);
 
-      // Default fallback for estimatedWeeklyHours if missing
+      // Default fallback for weekly hours.
       if (!validated.estimatedWeeklyHours) {
         validated.estimatedWeeklyHours = 20;
       }
@@ -99,42 +131,94 @@ async function generateRoadmap(goal, profile = {}) {
       return validated;
     } catch (error) {
       lastError = error;
-      console.error(`LLM attempt ${attempt + 1} failed:`, error.message);
+
+      console.error(
+        `LLM attempt ${attempt + 1} failed:`,
+        error.message
+      );
     }
   }
 
   throw new Error(
-    `Failed to generate roadmap after 2 attempts. Last error: ${lastError?.message || 'Unknown error'}`
+    `Failed to generate roadmap after 2 attempts. Last error: ${
+      lastError?.message || 'Unknown error'
+    }`
   );
 }
 
+/**
+ * Builds the user prompt for the AI.
+ */
 function buildUserMessage(goal, profile) {
   let message = `Generate a career roadmap for the following goal: "${goal}"`;
 
   if (profile.targetDuration && profile.durationUnit) {
     message += `\nTarget Timeline / Available Preparation Time: ${profile.targetDuration} ${profile.durationUnit}`;
   }
-  if (profile.targetCompletionDate) {
-    message += `\nTarget Completion Date: ${new Date(profile.targetCompletionDate).toLocaleDateString()}`;
-  }
-  if (profile.age) message += `\nAge: ${profile.age}`;
-  if (profile.degree) message += `\nCurrent education: ${profile.degree}`;
-  if (profile.budget) message += `\nAvailable budget (INR): ${profile.budget}`;
-  if (profile.country) message += `\nCountry: ${profile.country}`;
 
-  message += '\n\nProvide a detailed month-by-month roadmap with realistic estimates matching the user\'s target timeline.';
+  if (profile.targetCompletionDate) {
+    message += `\nTarget Completion Date: ${new Date(
+      profile.targetCompletionDate
+    ).toLocaleDateString()}`;
+  }
+
+  if (profile.age) {
+    message += `\nAge: ${profile.age}`;
+  }
+
+  if (profile.degree) {
+    message += `\nCurrent education: ${profile.degree}`;
+  }
+
+  if (profile.budget) {
+    message += `\nAvailable budget (INR): ${profile.budget}`;
+  }
+
+  if (profile.country) {
+    message += `\nCountry: ${profile.country}`;
+  }
+
+  message +=
+    '\n\nProvide a detailed month-by-month roadmap with realistic estimates matching the user\'s target timeline.';
+
   return message;
 }
 
+/**
+ * Mentor chat based on the user's actual career roadmap and progress.
+ */
 async function mentorChat({ careerPath, userMessage, conversationHistory }) {
   try {
-    const completedMilestones = careerPath.roadmap.filter(m => m.completed);
-    const remainingMilestones = careerPath.roadmap.filter(m => !m.completed);
-    const totalMilestones = careerPath.roadmap.length;
-    const progressPercentage = totalMilestones > 0 ? Math.round((completedMilestones.length / totalMilestones) * 100) : 0;
+    const completedMilestones = careerPath.roadmap.filter(
+      m => m.completed
+    );
 
-    const completedList = completedMilestones.map(m => `  ✓ Month ${m.month}: ${m.milestone}`).join('\n') || '  (none yet)';
-    const remainingList = remainingMilestones.map(m => `  ○ Month ${m.month}: ${m.milestone}`).join('\n') || '  (all completed!)';
+    const remainingMilestones = careerPath.roadmap.filter(
+      m => !m.completed
+    );
+
+    const totalMilestones = careerPath.roadmap.length;
+
+    const progressPercentage =
+      totalMilestones > 0
+        ? Math.round(
+            (completedMilestones.length / totalMilestones) * 100
+          )
+        : 0;
+
+    const completedList =
+      completedMilestones
+        .map(
+          m => `  ✓ Month ${m.month}: ${m.milestone}`
+        )
+        .join('\n') || '  (none yet)';
+
+    const remainingList =
+      remainingMilestones
+        .map(
+          m => `  ○ Month ${m.month}: ${m.milestone}`
+        )
+        .join('\n') || '  (all completed!)';
 
     const systemPrompt = `You are a mentor roleplaying as the user's future self — someone who has already achieved the career goal: "${careerPath.goalTitle}".
 Speak in first person as their future self. Be encouraging but honest. Give practical, specific advice based on the data below.
@@ -181,7 +265,10 @@ Guidelines:
 
     const chatCompletion = await groq.chat.completions.create({
       messages,
-      model: env.GROQ_MODEL,
+
+      // Use the same Groq model as the roadmap generator.
+      model: 'llama-4-scout-17b-16e-instruct',
+
       temperature: 0.7,
       max_tokens: 1024,
     });
@@ -193,4 +280,7 @@ Guidelines:
   }
 }
 
-module.exports = { generateRoadmap, mentorChat };
+module.exports = {
+  generateRoadmap,
+  mentorChat,
+};
