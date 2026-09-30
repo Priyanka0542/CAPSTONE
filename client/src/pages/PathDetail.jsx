@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import Starfield from '../components/common/Starfield';
 import ProgressRing from '../components/common/ProgressRing';
 import Toast from '../components/common/Toast';
@@ -14,6 +15,7 @@ import { jsPDF } from 'jspdf';
 export default function PathDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [path, setPath] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
@@ -47,85 +49,295 @@ export default function PathDetail() {
   const handleExportReport = () => {
     if (!path) return;
     const stats = calculateTimelineStats(path);
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
+    const ml = 20;
+    const cw = pw - ml * 2;
+    const maxY = ph - 20;
+    let y = 0;
 
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 20;
-    const maxWidth = pageWidth - margin * 2;
-    let y = 20;
+    // PDF-safe colors (RGB arrays)
+    const PURPLE = [138, 92, 255];
+    const DARK = [17, 24, 39];
+    const GRAY = [75, 85, 99];
+    const LIGHT = [156, 163, 175];
+    const GREEN = [5, 150, 105];
+    const AMBER = [217, 119, 6];
+    const RED = [220, 38, 38];
 
-    const addText = (text, fontSize, isBold, color) => {
-      doc.setFontSize(fontSize);
-      doc.setFont('helvetica', isBold ? 'bold' : 'normal');
-      if (color) doc.setTextColor(...color);
-      else doc.setTextColor(30, 30, 30);
-      const lines = doc.splitTextToSize(text, maxWidth);
-      if (y + lines.length * fontSize * 0.5 > doc.internal.pageSize.getHeight() - 20) {
-        doc.addPage();
-        y = 20;
-      }
-      doc.text(lines, margin, y);
-      y += lines.length * fontSize * 0.45 + 2;
-      return lines.length;
+    // Derived data from path
+    const completedCount = path.roadmap.filter((s) => s.completed).length;
+    const totalCount = path.roadmap.length;
+    const prog = calculateProgress(path);
+    const isDone = path.status === 'completed' || prog === 100;
+    const userName = user?.name || 'User';
+
+    // Currency formatter safe for built-in PDF fonts
+    const fmtINR = (n) => {
+      if (!n && n !== 0) return 'N/A';
+      if (n >= 10000000) return 'INR ' + (n / 10000000).toFixed(1) + ' Cr';
+      if (n >= 100000) return 'INR ' + (n / 100000).toFixed(1) + ' L';
+      return 'INR ' + n.toLocaleString('en-IN');
     };
 
-    const addGap = (size) => { y += size; };
+    // Page-break helper: ensures `h` mm of space, else starts new page
+    const needPage = (h) => {
+      if (y + h > maxY) { doc.addPage(); y = 25; }
+    };
 
-    // Header
-    addText('FUTUREERA CAREER PATH REPORT', 18, true, [138, 92, 255]);
-    addGap(4);
+    // Sanitize text for PDF-safe rendering with built-in helvetica (Win-1252).
+    // Normalizes Unicode dashes/hyphens to ASCII hyphen-minus, removes
+    // zero-width characters that cause letter-spacing gaps, and converts
+    // smart quotes to ASCII equivalents.
+    const sanitize = (text) => {
+      if (!text) return '';
+      return String(text)
+        .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\uFE58\uFE63\uFF0D]/g, '-')
+        .replace(/[\u2018\u2019\u201A\u2039\u203A]/g, "'")
+        .replace(/[\u201C\u201D\u201E\u00AB\u00BB]/g, '"')
+        .replace(/[\u200B\u200C\u200D\u2060\uFEFF\u00AD]/g, '')
+        .replace(/\u00A0/g, ' ')
+        .replace(/[\u2026]/g, '...')
+        .replace(/[\u2022\u2023\u25E6\u2043\u2219]/g, '-');
+    };
 
-    // Divider
-    doc.setDrawColor(138, 92, 255);
-    doc.setLineWidth(0.5);
-    doc.line(margin, y, pageWidth - margin, y);
-    addGap(8);
+    // ============================================================
+    //  PAGE 1 - COVER / SUMMARY
+    // ============================================================
+    y = 25;
 
-    // Meta info
-    addText(`Goal: ${path.goalTitle}`, 13, true);
-    addGap(2);
-    addText(`Status: ${path.status.toUpperCase()}`, 10, false);
-    addText(`Risk Level: ${path.riskLevel}`, 10, false);
-    addText(`Timeline Health: ${stats.timelineHealth}`, 10, false);
-    addText(`Target Duration: ${stats.targetDurationText}`, 10, false);
-    addText(`Deadline: ${stats.targetCompletionDateText}`, 10, false);
-    addText(`Weekly Workload: ${stats.estimatedWeeklyHours} hrs/wk`, 10, false);
-    addText(`Current Pace: ${stats.currentPace}`, 10, false);
-    addText(`Estimated Cost: INR ${path.estimatedCostINR.toLocaleString('en-IN')}`, 10, false);
-    addText(`Estimated Annual Salary: INR ${path.estimatedOutcomeSalaryINR.toLocaleString('en-IN')}/year`, 10, false);
-    addGap(6);
+    // FutureEra brand
+    doc.setFontSize(28);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PURPLE);
+    doc.text('FutureEra', ml, y);
+    y += 8;
 
-    // Assumptions
-    addText('ASSUMPTIONS & FACTORS', 12, true, [217, 119, 6]);
-    addGap(2);
-    addText(path.assumptions, 9, false);
-    addGap(6);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...LIGHT);
+    doc.text('AI CAREER PATH SIMULATOR  |  PERSONAL ROADMAP', ml, y);
+    y += 7;
 
-    // Roadmap
-    addText('ROADMAP MILESTONES', 12, true, [138, 92, 255]);
-    addGap(4);
+    // Generated date + user name
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...GRAY);
+    const genDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric',
+    });
+    doc.text('Generated: ' + genDate, ml, y);
+    y += 4;
+    doc.text('Prepared for: ' + userName, ml, y);
+    y += 8;
 
-    path.roadmap.forEach((step) => {
-      const status = step.completed ? '[COMPLETED]' : '[PENDING]';
-      const statusColor = step.completed ? [5, 150, 105] : [100, 100, 100];
-      addText(`Month ${step.month}: ${step.milestone} ${status}`, 10, true, statusColor);
-      step.tasks.forEach((task) => {
-        addText(`  • ${task}`, 9, false);
+    // Purple divider rule
+    doc.setDrawColor(...PURPLE);
+    doc.setLineWidth(0.8);
+    doc.line(ml, y, pw - ml, y);
+    y += 8;
+
+    // Career goal title
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...DARK);
+    doc.splitTextToSize(sanitize(path.goalTitle), cw).forEach((l) => {
+      doc.text(l, ml, y);
+      y += 8;
+    });
+    y += 1;
+
+    // Status badge (IN PROGRESS / COMPLETED)
+    const statusLabel = isDone ? 'COMPLETED' : 'IN PROGRESS';
+    const statusC = isDone ? GREEN : PURPLE;
+    const statusBg = isDone ? [220, 252, 231] : [237, 233, 254];
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    const stW = doc.getTextWidth(statusLabel);
+    doc.setFillColor(...statusBg);
+    doc.roundedRect(ml, y - 3, stW + 8, 5, 1.5, 1.5, 'F');
+    doc.setTextColor(...statusC);
+    doc.text(statusLabel, ml + 4, y);
+    y += 10;
+
+    // Stats grid - 3 columns x 2 rows
+    const statItems = [
+      { lbl: 'PROGRESS', val: prog + '%' },
+      { lbl: 'DURATION', val: stats.targetDurationText },
+      { lbl: 'ESTIMATED COST', val: fmtINR(path.estimatedCostINR) },
+      { lbl: 'PROJECTED SALARY', val: fmtINR(path.estimatedOutcomeSalaryINR) + '/yr' },
+      { lbl: 'RISK LEVEL', val: (path.riskLevel || 'N/A').toUpperCase() },
+      { lbl: 'WEEKLY WORKLOAD', val: (stats.estimatedWeeklyHours || 20) + ' hrs/wk' },
+    ];
+    const colW = cw / 3;
+    const gridY = y;
+    statItems.forEach((s, i) => {
+      const cx = ml + (i % 3) * colW;
+      const cy = gridY + Math.floor(i / 3) * 16;
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...LIGHT);
+      doc.text(s.lbl, cx, cy);
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      if (s.lbl === 'RISK LEVEL') {
+        const rc = path.riskLevel === 'high' ? RED : path.riskLevel === 'medium' ? AMBER : GREEN;
+        doc.setTextColor(...rc);
+      } else {
+        doc.setTextColor(...DARK);
+      }
+      doc.text(String(s.val), cx, cy + 6);
+    });
+    y = gridY + Math.ceil(statItems.length / 3) * 16 + 4;
+
+    // Light divider
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineWidth(0.3);
+    doc.line(ml, y, pw - ml, y);
+    y += 8;
+
+    // Roadmap progress heading
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...DARK);
+    doc.text('ROADMAP PROGRESS - ' + completedCount + ' of ' + totalCount + ' phases complete', ml, y);
+    y += 7;
+
+    // Progress bar (rounded)
+    doc.setFillColor(229, 231, 235);
+    doc.roundedRect(ml, y, cw, 5, 2, 2, 'F');
+    if (prog > 0) {
+      doc.setFillColor(...PURPLE);
+      doc.roundedRect(ml, y, Math.max(4, cw * prog / 100), 5, 2, 2, 'F');
+    }
+    if (prog >= 10) {
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(prog + '%', ml + 3, y + 3.5);
+    }
+    y += 14;
+
+    // Assumptions section
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...AMBER);
+    doc.text('ASSUMPTIONS & FACTORS', ml, y);
+    y += 5;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...GRAY);
+    doc.splitTextToSize(sanitize(path.assumptions || 'N/A'), cw).forEach((l) => {
+      needPage(4);
+      doc.text(l, ml, y);
+      y += 3.5;
+    });
+    y += 5;
+
+    // Disclaimer box
+    needPage(14);
+    doc.setFillColor(254, 243, 199);
+    doc.roundedRect(ml, y, cw, 11, 2, 2, 'F');
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(...AMBER);
+    doc.text('Estimates are AI-generated based on stated assumptions and general data - not guarantees.', ml + 4, y + 4);
+    doc.text('Use this as a planning aid, not a prediction.', ml + 4, y + 8);
+    y += 17;
+
+    // Roadmap section header
+    needPage(20);
+    doc.setDrawColor(...PURPLE);
+    doc.setLineWidth(0.8);
+    doc.line(ml, y, pw - ml, y);
+    y += 6;
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PURPLE);
+    doc.text('CAREER ROADMAP - PHASE-BY-PHASE PLAN', ml, y);
+    y += 10;
+
+    // ============================================================
+    //  ROADMAP PHASES
+    // ============================================================
+    path.roadmap.forEach((step, i) => {
+      needPage(25);
+
+      // MONTH label (left) + status badge (right) on same line
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...PURPLE);
+      doc.text('MONTH ' + step.month, ml, y);
+
+      const badge = step.completed ? 'DONE' : 'PENDING';
+      const bColor = step.completed ? GREEN : LIGHT;
+      const bBg = step.completed ? [220, 252, 231] : [243, 244, 246];
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      const bW = doc.getTextWidth(badge);
+      const bX = pw - ml - bW - 8;
+      doc.setFillColor(...bBg);
+      doc.roundedRect(bX, y - 3, bW + 8, 5, 1.5, 1.5, 'F');
+      doc.setTextColor(...bColor);
+      doc.text(badge, bX + 4, y);
+      y += 6;
+
+      // Milestone title (full width)
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...DARK);
+      doc.splitTextToSize(sanitize(step.milestone), cw).forEach((l) => {
+        doc.text(l, ml, y);
+        y += 5;
       });
-      addGap(3);
+      y += 3;
+
+      // Tasks with drawn bullet circles for PDF-safe rendering
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      step.tasks.forEach((task) => {
+        const taskLines = doc.splitTextToSize(sanitize(task), cw - 12);
+        taskLines.forEach((tl, ti) => {
+          needPage(4);
+          if (ti === 0) {
+            doc.setFillColor(...GRAY);
+            doc.circle(ml + 5, y - 1, 0.7, 'F');
+          }
+          doc.setTextColor(...GRAY);
+          doc.text(tl, ml + 9, y);
+          y += 3.8;
+        });
+      });
+      y += 4;
+
+      // Phase separator line
+      if (i < path.roadmap.length - 1) {
+        doc.setDrawColor(229, 231, 235);
+        doc.setLineWidth(0.2);
+        doc.line(ml, y, pw - ml, y);
+        y += 6;
+      }
     });
 
-    // Footer
-    addGap(8);
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.3);
-    doc.line(margin, y, pageWidth - margin, y);
-    addGap(4);
-    addText('Generated by FutureEra AI Career Path Simulator', 8, false, [150, 150, 150]);
-    addText('Estimates are AI-generated — not guarantees. Use as a planning aid.', 7, false, [150, 150, 150]);
+    // ============================================================
+    //  FOOTERS - added to every page after all content is laid out
+    // ============================================================
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+      doc.setPage(p);
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.2);
+      doc.line(ml, ph - 15, pw - ml, ph - 15);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...LIGHT);
+      const ft = 'FutureEra  |  Career path report  |  Page ' + p + ' of ' + totalPages;
+      doc.text(ft, (pw - doc.getTextWidth(ft)) / 2, ph - 10);
+    }
 
-    doc.save(`${path.goalTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_report.pdf`);
-    setToast({ message: 'PDF report downloaded successfully!', type: 'success' });
+    doc.save(path.goalTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_report.pdf');
+    setToast({ message: 'PDF report downloaded!', type: 'success' });
   };
 
   if (loading) {
