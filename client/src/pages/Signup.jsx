@@ -18,11 +18,11 @@ export default function Signup() {
 
   // Password validation rules
   const passwordRules = [
-    { label: 'Starts with a capital letter', test: (pw) => /^[A-Z]/.test(pw) },
     { label: 'At least 8 characters', test: (pw) => pw.length >= 8 },
     { label: 'Contains an uppercase letter', test: (pw) => /[A-Z]/.test(pw) },
     { label: 'Contains a lowercase letter', test: (pw) => /[a-z]/.test(pw) },
     { label: 'Contains a number', test: (pw) => /\d/.test(pw) },
+    { label: 'Contains a special character', test: (pw) => /[^A-Za-z0-9]/.test(pw) },
   ];
 
   const allRulesPassed = password.length > 0 && passwordRules.every((rule) => rule.test(password));
@@ -100,7 +100,7 @@ export default function Signup() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 className="input-field pr-10"
-                placeholder="Min 8 chars, uppercase + lowercase + number"
+                placeholder="Min 8 chars, uppercase + lowercase + number + special char"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

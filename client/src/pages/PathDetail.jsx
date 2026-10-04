@@ -6,7 +6,6 @@ import Starfield from '../components/common/Starfield';
 import ProgressRing from '../components/common/ProgressRing';
 import Toast from '../components/common/Toast';
 import ThemeToggle from '../components/common/ThemeToggle';
-import MentorChat from '../components/MentorChat';
 import PeerBenchmark from '../components/PeerBenchmark';
 import { calculateProgress, calculateTimelineStats } from '../utils/pathUtils';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
@@ -19,7 +18,6 @@ export default function PathDetail() {
   const [path, setPath] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
-  const [mentorOpen, setMentorOpen] = useState(false);
 
   useEffect(() => {
     const fetchPath = async () => {
@@ -391,13 +389,6 @@ export default function PathDetail() {
             <ThemeToggle />
 
             <button
-              onClick={() => setMentorOpen(true)}
-              className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1"
-            >
-              🤖 Future-You Mentor
-            </button>
-
-            <button
               onClick={handleExportReport}
               className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1"
             >
@@ -756,14 +747,6 @@ export default function PathDetail() {
 
         </div>
       </div>
-
-      {/* Mentor Chat Modal */}
-      <MentorChat
-        pathId={id}
-        goalTitle={path?.goalTitle || ''}
-        isOpen={mentorOpen}
-        onClose={() => setMentorOpen(false)}
-      />
 
       {toast && (
         <Toast
