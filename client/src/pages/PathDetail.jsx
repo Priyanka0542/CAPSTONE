@@ -7,7 +7,11 @@ import ProgressRing from '../components/common/ProgressRing';
 import Toast from '../components/common/Toast';
 import ThemeToggle from '../components/common/ThemeToggle';
 import PeerBenchmark from '../components/PeerBenchmark';
+import ResourcesModal from '../components/common/ResourcesModal';
+import JobOffersModal from '../components/common/JobOffersModal';
 import { calculateProgress, calculateTimelineStats } from '../utils/pathUtils';
+import { getResourcesForMilestone } from '../data/milestoneResources';
+import { getJobResourcesForCareer } from '../data/jobResources';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { jsPDF } from 'jspdf';
 
@@ -18,6 +22,8 @@ export default function PathDetail() {
   const [path, setPath] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const [resourcesModal, setResourcesModal] = useState({ isOpen: false, milestone: null, resources: [] });
+  const [jobOffersModal, setJobOffersModal] = useState({ isOpen: false, resources: [] });
 
   useEffect(() => {
     const fetchPath = async () => {
@@ -42,6 +48,23 @@ export default function PathDetail() {
     } catch {
       setToast({ message: 'Failed to update milestone', type: 'error' });
     }
+  };
+
+  const handleOpenResources = (milestone) => {
+    const resources = getResourcesForMilestone(milestone, path.goalTitle);
+    setResourcesModal({
+      isOpen: true,
+      milestone: milestone,
+      resources: resources
+    });
+  };
+
+  const handleOpenJobOffers = () => {
+    const resources = getJobResourcesForCareer(path.goalTitle);
+    setJobOffersModal({
+      isOpen: true,
+      resources: resources
+    });
   };
 
   const handleExportReport = () => {
@@ -698,22 +721,32 @@ export default function PathDetail() {
                           </h3>
                         </div>
 
-                        {!step.completed && (
+                        <div className="flex gap-2">
                           <button
-                            className="btn-secondary text-[11px] py-1 px-3"
-                            onClick={() =>
-                              handleCompleteMilestone(step._id)
-                            }
+                            className="btn-secondary text-[11px] py-1 px-3 flex items-center gap-1"
+                            onClick={() => handleOpenResources(step.milestone)}
+                            title="View learning resources"
                           >
-                            Mark done
+                            📚 Resources
                           </button>
-                        )}
 
-                        {step.completed && (
-                          <span className="text-xs font-bold text-aurora-teal">
-                            ✓ Done
-                          </span>
-                        )}
+                          {!step.completed && (
+                            <button
+                              className="btn-secondary text-[11px] py-1 px-3"
+                              onClick={() =>
+                                handleCompleteMilestone(step._id)
+                              }
+                            >
+                              Mark done
+                            </button>
+                          )}
+
+                          {step.completed && (
+                            <span className="text-xs font-bold text-aurora-teal flex items-center">
+                              ✓ Done
+                            </span>
+                          )}
+                        </div>
 
                       </div>
 
@@ -745,6 +778,48 @@ export default function PathDetail() {
             </div>
           </div>
 
+          {/* Job Offers Button - Shows locked state or unlocked when all milestones are completed */}
+          <div className="animate-fadeIn" style={{ animationDelay: '0.4s' }}>
+            <div className="card p-6 text-center">
+              {isCompleted ? (
+                <>
+                  <div className="text-4xl mb-3">🎉</div>
+                  <h3 className="text-lg font-extrabold text-starlight mb-2">
+                    Congratulations! You've completed all milestones!
+                  </h3>
+                  <p className="text-sm text-dust-gray mb-4">
+                    You're now ready to explore job opportunities in this field.
+                  </p>
+                  <button
+                    className="btn-primary py-2 px-6 text-sm font-bold"
+                    onClick={handleOpenJobOffers}
+                  >
+                    💼 View Job Opportunities
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="text-4xl mb-3">🔒</div>
+                  <h3 className="text-lg font-extrabold text-starlight mb-2">
+                    Job Opportunities Locked
+                  </h3>
+                  <p className="text-sm text-dust-gray mb-4">
+                    Complete all milestones to unlock job opportunities for this career path.
+                  </p>
+                  <button
+                    className="btn-secondary py-2 px-6 text-sm font-bold opacity-50 cursor-not-allowed"
+                    disabled
+                  >
+                    💼 View Job Opportunities
+                  </button>
+                  <p className="text-xs text-dust-gray mt-3">
+                    Progress: {completedMilestones}/{path.roadmap.length} milestones completed
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -755,6 +830,20 @@ export default function PathDetail() {
           onClose={() => setToast(null)}
         />
       )}
+
+      <ResourcesModal
+        isOpen={resourcesModal.isOpen}
+        onClose={() => setResourcesModal({ isOpen: false, milestone: null, resources: [] })}
+        milestone={resourcesModal.milestone}
+        resources={resourcesModal.resources}
+      />
+
+      <JobOffersModal
+        isOpen={jobOffersModal.isOpen}
+        onClose={() => setJobOffersModal({ isOpen: false, resources: [] })}
+        goalTitle={path?.goalTitle}
+        jobResources={jobOffersModal.resources}
+      />
     </div>
   );
 }
