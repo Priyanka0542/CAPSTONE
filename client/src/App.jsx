@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
+import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import PathDetail from './pages/PathDetail';
 import Compare from './pages/Compare';
@@ -40,6 +41,7 @@ export default function App() {
   return (
     <Routes>
       {/* Public routes */}
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -51,7 +53,7 @@ export default function App() {
       <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
 
       {/* Default redirect */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

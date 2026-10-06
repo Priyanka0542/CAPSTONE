@@ -12,6 +12,7 @@ import BadgeCard from '../components/common/BadgeCard';
 import Modal from '../components/common/Modal';
 import Toast from '../components/common/Toast';
 import MentorChat from '../components/MentorChat';
+import LandingHero from '../components/landing/LandingHero';
 
 import ThemeToggle from '../components/common/ThemeToggle';
 
@@ -117,19 +118,9 @@ export default function Dashboard() {
         </nav>
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          {/* Empty state */}
+          {/* Empty state - Show Landing Hero */}
           {!pathsLoading && !hasAnyPaths && !showNewGoal && (
-            <div className="text-center py-20 animate-fadeIn">
-              <div className="text-6xl mb-4">🚀</div>
-              <h2 className="text-2xl font-bold text-starlight mb-2">Welcome to FutureEra</h2>
-              <p className="text-dust-gray mb-8 max-w-md mx-auto">
-                Start your journey by telling the AI what career you want to pursue.
-                It'll generate a personalized roadmap just for you.
-              </p>
-              <button className="btn-primary text-base px-8 py-3" onClick={() => setShowNewGoal(true)}>
-                Set your first goal
-              </button>
-            </div>
+            <LandingHero onCreateGoal={() => setShowNewGoal(true)} showNav={false} />
           )}
 
           {/* New goal modal */}
