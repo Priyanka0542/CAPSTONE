@@ -27,7 +27,7 @@ app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 
 // General rate limit
-app.use('/api', apiLimiter);
+//app.use('/api', apiLimiter);
 
 // Routes
 app.use('/api/auth', authRoutes);
