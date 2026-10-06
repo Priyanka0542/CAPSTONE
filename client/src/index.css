@@ -150,6 +150,11 @@ body {
   50% { opacity: 0.5; }
 }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.4s ease-out forwards;
 }
@@ -164,6 +169,10 @@ body {
 
 .animate-badge-pop {
   animation: badge-pop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
 /* Card base */
