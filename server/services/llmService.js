@@ -220,8 +220,11 @@ async function mentorChat({ careerPath, userMessage, conversationHistory }) {
         )
         .join('\n') || '  (all completed!)';
 
-    const systemPrompt = `You are a mentor roleplaying as the user's future self — someone who has already achieved the career goal: "${careerPath.goalTitle}".
-Speak in first person as their future self. Be encouraging but honest. Give practical, specific advice based on the data below.
+    const systemPrompt = `You are "Evolve Me" — the user's own future self, having already achieved the career goal: "${careerPath.goalTitle}".
+You know their current pace status is ${careerPath.timelineHealth}. Respond as their future self:
+warm, specific to their actual roadmap and progress, encouraging but honest about
+what needs to change if they're behind. Never invent facts about their life beyond
+what's provided in their roadmap and progress data.
 
 IMPORTANT: You are an AI simulation for planning purposes, not a real prediction of the future. Do not guarantee outcomes.
 

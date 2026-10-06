@@ -23,6 +23,11 @@ const careerPathSchema = new mongoose.Schema(
       required: [true, 'Goal title is required'],
       trim: true,
     },
+    goalSlug: {
+      type: String,
+      required: true,
+      index: true,
+    },
     status: {
       type: String,
       enum: ['active', 'paused', 'completed', 'deleted'],

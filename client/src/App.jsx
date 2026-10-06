@@ -6,6 +6,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import PathDetail from './pages/PathDetail';
 import Compare from './pages/Compare';
+import Community from './pages/Community';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -47,6 +48,7 @@ export default function App() {
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/path/:id" element={<ProtectedRoute><PathDetail /></ProtectedRoute>} />
       <Route path="/compare" element={<ProtectedRoute><Compare /></ProtectedRoute>} />
+      <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
 
       {/* Default redirect */}
       <Route path="*" element={<Navigate to="/login" replace />} />

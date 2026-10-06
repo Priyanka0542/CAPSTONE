@@ -15,7 +15,7 @@ export default function MentorChat({ pathId, goalTitle, isOpen, onClose }) {
       setMessages([
         {
           role: 'assistant',
-          content: `Hey! I'm the future version of you — the one who already achieved the goal "${goalTitle}". Ask me anything about the journey ahead, what to focus on, or how to stay on track. I'm here to help based on your actual roadmap and progress.\n\n⚠️ This is an AI simulation for planning purposes, not a real prediction.`,
+          content: `Hey! I'm your "Future Self" — the version of you who already achieved the goal "${goalTitle}". Ask me anything about the journey ahead, what to focus on, or how to stay on track. I'm here to help based on your actual roadmap and progress.\n\n⚠️ This is an AI simulation for planning purposes, not a real prediction.`,
         },
       ]);
     }
@@ -75,7 +75,7 @@ export default function MentorChat({ pathId, goalTitle, isOpen, onClose }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="🤖 Future-You Mentor">
+    <Modal isOpen={isOpen} onClose={onClose} title="🤖 Talk to your Future Self">
       <div className="mentor-chat-container">
         <div className="mentor-chat-messages">
           {messages.map((msg, i) => (
@@ -86,7 +86,7 @@ export default function MentorChat({ pathId, goalTitle, isOpen, onClose }) {
               }`}
             >
               {msg.role === 'assistant' && (
-                <span className="mentor-chat-avatar">🚀</span>
+                <span className="mentor-chat-avatar">🤖</span>
               )}
               <div className="mentor-chat-text">
                 {msg.content.split('\n').map((line, j) => (
@@ -101,7 +101,7 @@ export default function MentorChat({ pathId, goalTitle, isOpen, onClose }) {
 
           {loading && (
             <div className="mentor-chat-bubble mentor-chat-assistant">
-              <span className="mentor-chat-avatar">🚀</span>
+              <span className="mentor-chat-avatar">🤖</span>
               <div className="mentor-chat-text">
                 <span className="mentor-chat-typing">
                   <span className="mentor-dot"></span>

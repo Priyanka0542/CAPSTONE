@@ -11,6 +11,7 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 const authRoutes = require('./routes/auth');
 const pathRoutes = require('./routes/paths');
 const activityRoutes = require('./routes/activity');
+const communityRoutes = require('./routes/community');
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/api', apiLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/paths', pathRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/community', communityRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

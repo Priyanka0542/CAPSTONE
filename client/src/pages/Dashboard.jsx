@@ -11,6 +11,7 @@ import GoalInputForm from '../components/onboarding/GoalInputForm';
 import BadgeCard from '../components/common/BadgeCard';
 import Modal from '../components/common/Modal';
 import Toast from '../components/common/Toast';
+import MentorChat from '../components/MentorChat';
 
 import ThemeToggle from '../components/common/ThemeToggle';
 
@@ -25,10 +26,14 @@ export default function Dashboard() {
   const [creating, setCreating] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [toast, setToast] = useState(null);
+  const [showEvolveMe, setShowEvolveMe] = useState(false);
 
   const activePaths = paths.filter((p) => p.status === 'active' || p.status === 'paused');
   const completedPaths = paths.filter((p) => p.status === 'completed');
   const hasAnyPaths = activePaths.length > 0 || completedPaths.length > 0;
+
+  // Get focus path for Evolve Me
+  const focusPath = paths.find(p => p._id === user?.focusPathId) || activePaths[0];
 
   const handleCreatePath = async (goal, profile) => {
     setCreating(true);
@@ -103,6 +108,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-4 sm:gap-6">
             <span className="text-sm font-semibold text-dust-gray hidden sm:block">Hey, {user?.name}</span>
             <ThemeToggle />
+            <Link to="/community" className="btn-secondary text-xs py-1.5 px-3">Companions</Link>
             <Link to="/compare" className="btn-secondary text-xs py-1.5 px-3">Compare</Link>
             <button onClick={logout} className="text-sm font-medium text-dust-gray hover:text-meteor-red transition-colors cursor-pointer">
               Log out
@@ -244,6 +250,34 @@ export default function Dashboard() {
           message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Future Self Guide FAB */}
+      {hasAnyPaths && (
+        <button
+          onClick={() => {
+            if (!focusPath) {
+              setToast({ message: 'Select a goal first so your Future Self can guide you', type: 'error' });
+              return;
+            }
+            setShowEvolveMe(true);
+          }}
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50"
+          style={{ background: 'linear-gradient(135deg, var(--comet-violet), var(--aurora-teal))' }}
+          title="Talk to your Future Self"
+        >
+          <span className="text-2xl">🤖</span>
+        </button>
+      )}
+
+      {/* Evolve Me Modal */}
+      {focusPath && (
+        <MentorChat
+          pathId={focusPath._id}
+          goalTitle={focusPath.goalTitle}
+          isOpen={showEvolveMe}
+          onClose={() => setShowEvolveMe(false)}
         />
       )}
     </div>

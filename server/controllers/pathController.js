@@ -19,10 +19,18 @@ exports.createPath = async (req, res, next) => {
     const targetCompletionDate = profile?.targetCompletionDate || req.body.targetCompletionDate || new Date(Date.now() + monthsToDays * 86400000);
     const estimatedWeeklyHours = roadmapData.estimatedWeeklyHours || 20;
 
+    // Compute goalSlug (normalized, lowercase)
+    const goalSlug = roadmapData.goalTitle
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
+
     // Create career path
     const careerPath = await CareerPath.create({
       userId,
       goalTitle: roadmapData.goalTitle,
+      goalSlug,
       estimatedMonths: roadmapData.estimatedMonths,
       estimatedCostINR: roadmapData.estimatedCostINR,
       estimatedOutcomeSalaryINR: roadmapData.estimatedOutcomeSalaryINR,
