@@ -44,8 +44,8 @@ export default function ForgotPassword() {
 
         {sent ? (
           <div className="p-4 rounded-lg text-center border border-aurora-teal" style={{ background: 'var(--surface-secondary)' }}>
-            <p className="text-sm font-bold text-aurora-teal mb-2">✓ Reset link sent!</p>
-            <p className="text-xs font-medium text-dust-gray">Check your email (or console in dev mode).</p>
+            <p className="text-sm font-bold text-aurora-teal mb-2">✓ Check your email</p>
+            <p className="text-xs font-medium text-dust-gray">If an account exists for this email, a password reset link has been sent.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">

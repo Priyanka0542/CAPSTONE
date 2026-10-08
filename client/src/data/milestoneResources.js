@@ -1515,29 +1515,41 @@ export function getResourcesForMilestone(milestoneText, goalTitle = '') {
     }
   };
   
-  // First, try to match based on career path
-  for (const [career, minResources] of Object.entries(careerResources)) {
+  // First, try to match based on career path + specific milestone topic
+  let careerMatch = null;
+  for (const [career, topicResources] of Object.entries(careerResources)) {
     if (combinedText.includes(career)) {
+      careerMatch = topicResources;
       // Match milestone topic within the career
-      for (const [topic, resources] of Object.entries(minResources)) {
-        if (combinedText.includes(topic)) {
+      for (const [topic, resources] of Object.entries(topicResources)) {
+        if (lowerMilestone.includes(topic)) {
           return resources;
         }
       }
-      // If no specific topic match, return programming resources for that career
-      if (minResources.programming) {
-        return minResources.programming;
-      }
     }
   }
-  
-  // Fallback to keyword matching (including new generic keywords)
+
+  // If career matched but no specific topic, try matching milestone against generic resources
+  if (careerMatch) {
+    // Try milestone keywords against the main milestoneResources
+    for (const [key, resources] of Object.entries(milestoneResources)) {
+      if (key !== 'default' && lowerMilestone.includes(key)) {
+        return resources;
+      }
+    }
+    // Still no match - return the career's 'programming' or first topic
+    if (careerMatch.programming) return careerMatch.programming;
+    const firstTopic = Object.values(careerMatch)[0];
+    if (firstTopic) return firstTopic;
+  }
+
+  // No career match - try generic milestone keyword matching
   for (const [key, resources] of Object.entries(milestoneResources)) {
-    if (lowerMilestone.includes(key)) {
+    if (key !== 'default' && lowerMilestone.includes(key)) {
       return resources;
     }
   }
-  
+
   // Check for action verbs in milestone
   const actionKeywords = ['learn', 'build', 'develop', 'master', 'create', 'implement', 'design', 'test', 'deploy', 'database', 'api', 'framework', 'architecture', 'optimization', 'security', 'analysis', 'integration'];
   for (const keyword of actionKeywords) {
@@ -1545,7 +1557,15 @@ export function getResourcesForMilestone(milestoneText, goalTitle = '') {
       return milestoneResources[keyword];
     }
   }
-  
+
+  // Last resort: try to match any word from the milestone against resource keys
+  const milestoneWords = lowerMilestone.split(/\s+/);
+  for (const word of milestoneWords) {
+    if (word.length > 3 && milestoneResources[word]) {
+      return milestoneResources[word];
+    }
+  }
+
   // Return default resources if no match found
   return milestoneResources.default;
 }

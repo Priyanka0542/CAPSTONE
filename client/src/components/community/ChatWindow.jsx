@@ -20,8 +20,8 @@ export default function ChatWindow({ goalSlug, currentUserId }) {
       try {
         const since = lastMessageTime ? lastMessageTime.toISOString() : undefined;
         const url = since 
-          ? `/api/community/${goalSlug}/messages?since=${since}`
-          : `/api/community/${goalSlug}/messages`;
+          ? `/community/${goalSlug}/messages?since=${since}`
+          : `/community/${goalSlug}/messages`;
         
         const { data } = await api.get(url);
         
@@ -70,7 +70,7 @@ export default function ChatWindow({ goalSlug, currentUserId }) {
     setLoading(true);
 
     try {
-      const { data } = await api.post(`/api/community/${goalSlug}/messages`, {
+      const { data } = await api.post(`/community/${goalSlug}/messages`, {
         message: trimmed,
       });
 
@@ -106,7 +106,7 @@ export default function ChatWindow({ goalSlug, currentUserId }) {
 
   const reportMessage = async (messageId) => {
     try {
-      await api.post(`/api/community/${goalSlug}/messages/${messageId}/report`);
+      await api.post(`/community/${goalSlug}/messages/${messageId}/report`);
       alert('Message reported for moderation.');
     } catch (err) {
       alert('Failed to report message.');

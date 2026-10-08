@@ -512,11 +512,49 @@ export function getJobResourcesForCareer(goalTitle) {
   
   // Try direct keyword matching
   for (const [key, resources] of Object.entries(jobResources)) {
-    if (lowerGoal.includes(key)) {
+    if (key !== 'default' && lowerGoal.includes(key)) {
       return resources;
     }
   }
   
-  // Return default resources if no match found
-  return jobResources.default;
+  // Dynamic fallback: generate role-specific search URLs using the goalTitle
+  const encoded = encodeURIComponent(goalTitle);
+  return [
+    {
+      type: 'job-board',
+      title: `LinkedIn Jobs - ${goalTitle}`,
+      description: `Search ${goalTitle} positions on LinkedIn`,
+      url: `https://www.linkedin.com/jobs/search/?keywords=${encoded}`
+    },
+    {
+      type: 'job-board',
+      title: `Indeed - ${goalTitle} Jobs`,
+      description: `${goalTitle} job listings on Indeed`,
+      url: `https://www.indeed.com/jobs?q=${encoded}`
+    },
+    {
+      type: 'job-board',
+      title: `Glassdoor - ${goalTitle} Jobs`,
+      description: `${goalTitle} jobs with salary information`,
+      url: `https://www.glassdoor.com/Job/jobs.htm?sc.keyword=${encoded}`
+    },
+    {
+      type: 'job-board',
+      title: `Naukri.com - ${goalTitle}`,
+      description: `${goalTitle} jobs in India`,
+      url: `https://www.naukri.com/${encoded.replace(/%20/g, '-')}-jobs`
+    },
+    {
+      type: 'remote',
+      title: `Remote ${goalTitle} Jobs`,
+      description: `Remote ${goalTitle} opportunities`,
+      url: `https://remote.co/remote-jobs/search/?search_keywords=${encoded}`
+    },
+    {
+      type: 'startup',
+      title: `AngelList - ${goalTitle}`,
+      description: `${goalTitle} jobs at startups`,
+      url: `https://wellfound.com/jobs?q=${encoded}`
+    }
+  ];
 }

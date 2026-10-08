@@ -138,6 +138,85 @@ export default function Compare() {
               {/* Comparison results */}
               {comparisonData && (
                 <div className="animate-fadeIn">
+                  {/* Decision Summary */}
+                  {comparisonData.length >= 2 && (() => {
+                    const riskOrder = { high: 3, medium: 2, low: 1 };
+                    const sorted = [...comparisonData];
+                    
+                    // Risk analysis
+                    const byRisk = [...sorted].sort((a, b) => (riskOrder[b.riskLevel] || 0) - (riskOrder[a.riskLevel] || 0));
+                    const highestRisk = byRisk[0];
+                    const lowestRisk = byRisk[byRisk.length - 1];
+                    
+                    // Difficulty: combine estimatedMonths + estimatedWeeklyHours + estimatedCostINR
+                    const withDifficulty = sorted.map(p => {
+                      const months = p.estimatedMonths || p.targetDuration || 6;
+                      const hours = p.estimatedWeeklyHours || 20;
+                      const cost = p.estimatedCostINR || 0;
+                      // Normalize: longer duration, more hours, higher cost = harder
+                      return { ...p, difficultyScore: months * hours + (cost / 10000) };
+                    });
+                    const byDifficulty = [...withDifficulty].sort((a, b) => b.difficultyScore - a.difficultyScore);
+                    const hardest = byDifficulty[0];
+                    const easiest = byDifficulty[byDifficulty.length - 1];
+
+                    // Suitability: best combination of lower risk, higher salary, lower cost
+                    const withSuitability = sorted.map(p => {
+                      const riskScore = riskOrder[p.riskLevel] || 2;
+                      const salary = p.estimatedOutcomeSalaryINR || 0;
+                      const cost = p.estimatedCostINR || 0;
+                      return { ...p, suitabilityScore: (salary / 100000) - (riskScore * 5) - (cost / 100000) };
+                    });
+                    const bestFit = [...withSuitability].sort((a, b) => b.suitabilityScore - a.suitabilityScore)[0];
+
+                    return (
+                      <div className="card mb-8 animate-fadeIn" style={{ borderColor: 'var(--primary)', borderWidth: '1px' }}>
+                        <h3 className="text-base font-extrabold text-starlight mb-4 flex items-center gap-2">
+                          <span>📊</span> Decision Summary
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="p-3 rounded-lg" style={{ background: 'var(--surface-secondary)' }}>
+                            <p className="text-xs font-semibold text-dust-gray uppercase tracking-wider mb-1">Higher Risk</p>
+                            <p className="text-sm font-bold" style={{ color: riskColors[highestRisk.riskLevel] }}>
+                              {highestRisk.goalTitle}
+                              <span className="text-xs font-medium text-dust-gray ml-1">({highestRisk.riskLevel} risk)</span>
+                            </p>
+                          </div>
+                          <div className="p-3 rounded-lg" style={{ background: 'var(--surface-secondary)' }}>
+                            <p className="text-xs font-semibold text-dust-gray uppercase tracking-wider mb-1">Lower Risk</p>
+                            <p className="text-sm font-bold" style={{ color: riskColors[lowestRisk.riskLevel] }}>
+                              {lowestRisk.goalTitle}
+                              <span className="text-xs font-medium text-dust-gray ml-1">({lowestRisk.riskLevel} risk)</span>
+                            </p>
+                          </div>
+                          <div className="p-3 rounded-lg" style={{ background: 'var(--surface-secondary)' }}>
+                            <p className="text-xs font-semibold text-dust-gray uppercase tracking-wider mb-1">Relatively Harder</p>
+                            <p className="text-sm font-bold text-starlight">
+                              {hardest.goalTitle}
+                              <span className="text-xs font-medium text-dust-gray ml-1">(among selected paths)</span>
+                            </p>
+                          </div>
+                          <div className="p-3 rounded-lg" style={{ background: 'var(--surface-secondary)' }}>
+                            <p className="text-xs font-semibold text-dust-gray uppercase tracking-wider mb-1">Relatively Easier</p>
+                            <p className="text-sm font-bold text-starlight">
+                              {easiest.goalTitle}
+                              <span className="text-xs font-medium text-dust-gray ml-1">(among selected paths)</span>
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-3 p-3 rounded-lg" style={{ background: 'rgba(138, 92, 255, 0.06)', border: '1px solid rgba(138, 92, 255, 0.15)' }}>
+                          <p className="text-xs font-semibold text-dust-gray uppercase tracking-wider mb-1">Most Suitable (based on available data)</p>
+                          <p className="text-sm font-bold text-comet-violet">
+                            {bestFit.goalTitle}
+                          </p>
+                          <p className="text-xs text-dust-gray mt-1">
+                            Based on the best combination of salary potential ({formatINR(bestFit.estimatedOutcomeSalaryINR)}/yr), risk level ({bestFit.riskLevel}), and estimated cost ({formatINR(bestFit.estimatedCostINR)}) among the selected paths. This is a relative comparison, not an absolute recommendation.
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* Side-by-side cards */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                     {comparisonData.map((p) => {

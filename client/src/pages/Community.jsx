@@ -43,7 +43,7 @@ export default function Community() {
     const fetchMembers = async () => {
       setMembersLoading(true);
       try {
-        const { data } = await api.get(`/api/community/${selectedGoalSlug}/members`);
+        const { data } = await api.get(`/community/${selectedGoalSlug}/members`);
         setMembers(data.members);
       } catch (err) {
         console.error('Failed to fetch members:', err);
