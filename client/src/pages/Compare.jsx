@@ -63,8 +63,11 @@ export default function Compare() {
       <div className="relative z-10">
         {/* Nav */}
         <nav className="flex items-center justify-between px-6 py-4 shadow-sm" style={{ background: 'var(--card)', borderBottom: '1px solid var(--border)' }}>
-          <Link to="/dashboard" className="text-2xl font-extrabold text-starlight tracking-tight hover:opacity-90 transition-opacity">
-            <span className="text-comet-violet">Future</span>Era
+          <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <img src="/logo.png" alt="FutureEra Logo" className="h-8 w-auto" />
+            <span className="text-2xl font-extrabold text-starlight tracking-tight">
+              <span className="text-comet-violet">Future</span>Era
+            </span>
           </Link>
           <div className="flex items-center gap-3">
             <ThemeToggle />

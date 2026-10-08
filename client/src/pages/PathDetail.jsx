@@ -403,9 +403,12 @@ export default function PathDetail() {
         >
           <Link
             to="/dashboard"
-            className="text-2xl font-extrabold text-starlight tracking-tight hover:opacity-90 transition-opacity"
+            className="flex items-center gap-3 hover:opacity-90 transition-opacity"
           >
-            <span className="text-comet-violet">Future</span>Era
+            <img src="/logo.png" alt="FutureEra Logo" className="h-8 w-auto" />
+            <span className="text-2xl font-extrabold text-starlight tracking-tight">
+              <span className="text-comet-violet">Future</span>Era
+            </span>
           </Link>
 
           <div className="flex items-center gap-3">
