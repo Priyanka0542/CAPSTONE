@@ -56,6 +56,7 @@ export default function ResetPassword() {
       </div>
       <div className="card w-full max-w-md animate-fadeIn relative z-10">
         <div className="text-center mb-8">
+          <img src="/logo.png" alt="FutureEra Logo" className="h-16 w-auto mx-auto mb-3" />
           <h1 className="text-3xl font-extrabold text-starlight mb-1 tracking-tight">
             <span className="text-comet-violet">Future</span>Era
           </h1>
@@ -68,8 +69,8 @@ export default function ResetPassword() {
 
         {success ? (
           <div className="text-center">
-            <div className="p-4 rounded-lg border border-aurora-teal mb-6" style={{ background: 'var(--surface-secondary)' }}>
-              <p className="text-sm font-bold text-aurora-teal">✓ Password reset successfully!</p>
+            <div className="p-4 rounded-lg mb-6" style={{ background: 'rgba(5, 150, 105, 0.1)', border: '1px solid rgba(5, 150, 105, 0.2)' }}>
+              <p className="text-sm font-bold" style={{ color: 'var(--success)' }}>✓ Password reset successfully!</p>
             </div>
             <Link to="/login" className="btn-primary w-full inline-block text-center">
               Go to login
@@ -78,8 +79,8 @@ export default function ResetPassword() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 rounded-lg border border-meteor-red" style={{ background: 'var(--surface-secondary)' }}>
-                <p className="text-sm font-bold text-meteor-red">{error}</p>
+              <div className="p-3 rounded-lg" style={{ background: 'rgba(255, 92, 122, 0.1)', border: '1px solid rgba(255, 92, 122, 0.2)' }}>
+                <p className="text-sm font-bold" style={{ color: 'var(--danger)' }}>{error}</p>
               </div>
             )}
             
@@ -95,7 +96,7 @@ export default function ResetPassword() {
               />
             </div>
             
-            <div className="bg-[var(--surface-secondary)] p-3 rounded-lg border border-[var(--border-color)]">
+            <div style={{ background: 'var(--surface-secondary)' }} className="p-3 rounded-lg border border-card-border">
               <p className="text-xs font-bold text-starlight mb-2">Password must contain:</p>
               <ul className="text-xs space-y-1">
                 <li className={`password-req-item ${validations.length ? 'valid' : ''}`}>At least 8 characters</li>

@@ -1,41 +1,43 @@
 const nodemailer = require('nodemailer');
 const env = require('../config/env');
 
-const createTransporter = () => {
-  if (!env.EMAIL_HOST || !env.EMAIL_USER) {
-    return null;
-  }
-  return nodemailer.createTransport({
-    host: env.EMAIL_HOST,
-    port: Number(env.EMAIL_PORT),
-    secure: Number(env.EMAIL_PORT) === 465,
-    auth: {
-      user: env.EMAIL_USER,
-      pass: env.EMAIL_PASS,
-    },
-  });
-};
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: env.EMAIL_USER,
+    pass: env.EMAIL_APP_PASSWORD,
+  },
+});
 
-exports.sendPasswordResetEmail = async (email, resetUrl) => {
-  const transporter = createTransporter();
+async function sendPasswordResetEmail(toEmail, resetUrl) {
+  const mailOptions = {
+    from: `"${env.EMAIL_FROM_NAME}" <${env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: 'Reset your FutureEra password',
+    html: `
+      <div style="font-family: sans-serif; background: #05010F; color: #F1EFFF; padding: 32px; border-radius: 12px; max-width: 480px; margin: 0 auto;">
+        <h2 style="color: #8A5CFF; margin-top: 0;">Reset your password</h2>
+        <p style="color: #F1EFFF; line-height: 1.6;">
+          We received a request to reset your FutureEra password. Click the button below to choose a new one.
+          This link expires in 30 minutes.
+        </p>
+        <a href="${resetUrl}"
+           style="display: inline-block; background: #8A5CFF; color: white; padding: 12px 24px;
+                  border-radius: 8px; text-decoration: none; font-weight: 600; margin: 16px 0;">
+          Reset password
+        </a>
+        <p style="color: #7C7A99; font-size: 13px; line-height: 1.6;">
+          If you didn't request this, you can safely ignore this email — your password will not change.
+        </p>
+        <p style="color: #7C7A99; font-size: 12px; margin-top: 24px;">
+          If the button doesn't work, copy and paste this link: <br/>
+          <span style="word-break: break-all;">${resetUrl}</span>
+        </p>
+      </div>
+    `,
+  };
 
-  if (!transporter) {
-    console.log(`📧 [DEV] Password reset email for ${email}:`);
-    console.log(`   Reset URL: ${resetUrl}`);
-    return;
-  }
+  await transporter.sendMail(mailOptions);
+}
 
-  await transporter.sendMail({
-    from: `"FutureEra" <${env.EMAIL_FROM}>`,
-    to: email,
-    subject: 'FutureEra — Password Reset',
-    html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;">
-      <h2 style="color:#8A5CFF;">FutureEra</h2>
-      <p>You requested a password reset. Click the button below to set a new password:</p>
-      <a href="${resetUrl}" style="display:inline-block;padding:12px 28px;background:#8A5CFF;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;margin:16px 0;">Reset Password</a>
-      <p style="font-size:13px;color:#666;">This link expires in 30 minutes. If you did not request this, please ignore this email.</p>
-      <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
-      <p style="font-size:11px;color:#999;">FutureEra — AI Career Path Simulator</p>
-    </div>`,
-  });
-};
+module.exports = { sendPasswordResetEmail };
