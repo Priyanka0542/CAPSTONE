@@ -4,20 +4,20 @@
 
 /* Galaxy Theme CSS Variables - Dark Mode (Default - Preserved 100%) */
 :root, [data-theme="dark"] {
-  --background: #05010F;
-  --surface: #0E0B1F;
-  --surface-secondary: #151230;
-  --card: #0E0B1F;
-  --border: rgba(138, 92, 255, 0.08);
+  --background: #252638;
+  --surface: #2C2E43;
+  --surface-secondary: #35374D;
+  --card: #303247;
+  --border: rgba(167, 139, 250, 0.22);
   --text-primary: #F1EFFF;
-  --text-secondary: #8E8BAA;
-  --primary: #8A5CFF;
-  --primary-hover: #9D75FF;
-  --success: #00F0C0;
-  --warning: #FFB84D;
-  --danger: #FF5C7A;
-  --pulsar-pink: #FF6FA8;
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 40px rgba(138, 92, 255, 0.04);
+  --text-secondary: #C2C5D6;
+  --primary: #A78BFA;
+  --primary-hover: #B9A2FF;
+  --success: #2DE2C5;
+  --warning: #FFBF66;
+  --danger: #FF718D;
+  --pulsar-pink: #FF83B5;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.25), 0 0 30px rgba(138, 92, 255, 0.06);
 
   /* Legacy Aliases for Backward Compatibility */
   --void-black: var(--background);
@@ -30,19 +30,19 @@
   --dust-gray: var(--text-secondary);
   --card-bg: var(--card);
   --card-border: var(--border);
-  --input-bg: rgba(255, 255, 255, 0.03);
-  --input-border: rgba(138, 92, 255, 0.12);
-  --btn-sec-bg: rgba(138, 92, 255, 0.04);
-  --btn-sec-border: rgba(138, 92, 255, 0.2);
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(167, 139, 250, 0.25);
+  --btn-sec-bg: rgba(167, 139, 250, 0.08);
+  --btn-sec-border: rgba(167, 139, 250, 0.3);
   --btn-sec-text: #F1EFFF;
-  --btn-sec-hover-bg: rgba(138, 92, 255, 0.12);
+  --btn-sec-hover-bg: rgba(167, 139, 250, 0.16);
   --disclaimer-bg: rgba(255, 184, 77, 0.06);
   --disclaimer-border: rgba(255, 184, 77, 0.18);
   --disclaimer-text: #FFB84D;
   --star-color: #ffffff;
-  --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.3), 0 0 1px rgba(138, 92, 255, 0.1);
-  --card-hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(138, 92, 255, 0.12);
-  --card-hover-border: rgba(138, 92, 255, 0.25);
+  --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.2), 0 0 1px rgba(167, 139, 250, 0.12);
+  --card-hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.28), 0 0 20px rgba(167, 139, 250, 0.14);
+  --card-hover-border: rgba(167, 139, 250, 0.38);
 }
 
 /* Premium SaaS Light Theme */
@@ -54,7 +54,7 @@
   --border: #E5E7EB;
   --text-primary: #111827;
   --text-secondary: #4B5563;
-  --primary: #8A5CFF;
+  --primary: #A78BFA;
   --primary-hover: #7A4EE6;
   --success: #059669;
   --warning: #D97706;
@@ -599,8 +599,8 @@ body {
 }
 
 [data-theme="dark"] .card {
-  background: linear-gradient(135deg, rgba(14, 11, 31, 0.95), rgba(21, 18, 48, 0.9));
-  border-color: rgba(138, 92, 255, 0.08);
+  background: linear-gradient(135deg, #303247, #383A51);
+  border-color: rgba(167, 139, 250, 0.22);
   backdrop-filter: blur(8px);
 }
 
@@ -641,7 +641,7 @@ body {
 }
 
 [data-theme="dark"] .toast {
-  background: rgba(14, 11, 31, 0.95);
+  background: rgba(48, 50, 71, 0.97);
   backdrop-filter: blur(12px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 1px rgba(138, 92, 255, 0.2);
 }
@@ -653,13 +653,13 @@ body {
 }
 
 [data-theme="dark"] nav {
-  background: rgba(14, 11, 31, 0.85) !important;
+  background: rgba(44, 46, 67, 0.92) !important;
   backdrop-filter: blur(12px);
-  border-bottom-color: rgba(138, 92, 255, 0.06) !important;
+  border-bottom-color: rgba(167, 139, 250, 0.18) !important;
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-track {
-  background: #05010F;
+  background: #252638;
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb {

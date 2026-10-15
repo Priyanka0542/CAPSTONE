@@ -76,7 +76,7 @@ async function generateRoadmap(goal, profile = {}) {
         messages,
 
         // Use a currently configured Groq model.
-        model: 'llama-4-scout-17b-16e-instruct',
+        model: env.GROQ_MODEL,
 
         temperature: 0.4,
         max_tokens: 4000,
@@ -270,7 +270,7 @@ Guidelines:
       messages,
 
       // Use the same Groq model as the roadmap generator.
-      model: 'llama-4-scout-17b-16e-instruct',
+      model: env.GROQ_MODEL,
 
       temperature: 0.7,
       max_tokens: 1024,
