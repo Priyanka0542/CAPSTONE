@@ -6,8 +6,11 @@ export default function LandingHero({ onCreateGoal, showNav = true }) {
       {/* Navigation */}
       {showNav && (
         <nav className="flex items-center justify-between px-6 py-4">
-          <div className="text-2xl font-extrabold tracking-tight">
-            <span className="text-comet-violet">Future</span>Era
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="FutureEra Logo" className="h-10 w-auto" />
+            <div className="text-2xl font-extrabold tracking-tight">
+              <span className="text-comet-violet">Future</span>Era
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/login" className="text-sm font-medium text-dust-gray hover:text-starlight transition-colors">
@@ -41,12 +44,6 @@ export default function LandingHero({ onCreateGoal, showNav = true }) {
               >
                 Create My Career Roadmap
               </button>
-              <Link
-                to="/dashboard"
-                className="btn-secondary text-base py-3 px-6 font-semibold"
-              >
-                Explore Careers
-              </Link>
             </div>
           </div>
 

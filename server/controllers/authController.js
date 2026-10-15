@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
 const env = require('../config/env');
+const { sendPasswordResetEmail } = require('../services/emailService');
 
 // Generate access token (15 min)
 const generateAccessToken = (user) => {
@@ -197,10 +198,12 @@ exports.forgotPassword = async (req, res, next) => {
     user.passwordResetExpires = Date.now() + 30 * 60 * 1000; // 30 minutes
     await user.save();
 
-    // Stub email sending — logs to console in dev
     const resetUrl = `${env.CLIENT_URL}/reset-password/${resetToken}`;
-    console.log(`📧 [STUB] Password reset email for ${email}:`);
-    console.log(`   Reset URL: ${resetUrl}`);
+    try {
+      await sendPasswordResetEmail(email, resetUrl);
+    } catch (emailErr) {
+      console.error('Failed to send reset email:', emailErr.message);
+    }
 
     res.json({ message: 'If an account with that email exists, a reset link has been sent.' });
   } catch (error) {

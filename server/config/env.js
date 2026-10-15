@@ -12,6 +12,9 @@ const env = {
   GROQ_API_KEY: process.env.GROQ_API_KEY,
   GROQ_MODEL: process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
+  EMAIL_USER: process.env.EMAIL_USER,
+  EMAIL_APP_PASSWORD: process.env.EMAIL_APP_PASSWORD,
+  EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME || 'FutureEra',
 };
 
 // Validate required env vars
@@ -21,6 +24,11 @@ for (const key of required) {
     console.error(`❌ Missing required environment variable: ${key}`);
     process.exit(1);
   }
+}
+
+// Warn if email config is missing (not required for dev, but needed for password reset)
+if (!env.EMAIL_USER || !env.EMAIL_APP_PASSWORD) {
+  console.warn('⚠️  EMAIL_USER and EMAIL_APP_PASSWORD not set. Password reset emails will not be sent.');
 }
 
 module.exports = env;

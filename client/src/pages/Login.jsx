@@ -38,6 +38,7 @@ export default function Login() {
       <div className="card w-full max-w-md animate-fadeIn relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
+          <img src="/logo.png" alt="FutureEra Logo" className="h-16 w-auto mx-auto mb-3" />
           <h1 className="text-3xl font-extrabold text-starlight mb-1 tracking-tight">
             <span className="text-comet-violet">Future</span>Era
           </h1>

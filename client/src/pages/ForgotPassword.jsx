@@ -32,6 +32,7 @@ export default function ForgotPassword() {
       </div>
       <div className="card w-full max-w-md animate-fadeIn relative z-10">
         <div className="text-center mb-8">
+          <img src="/logo.png" alt="FutureEra Logo" className="h-16 w-auto mx-auto mb-3" />
           <h1 className="text-3xl font-extrabold text-starlight mb-1 tracking-tight">
             <span className="text-comet-violet">Future</span>Era
           </h1>
@@ -43,15 +44,15 @@ export default function ForgotPassword() {
         </p>
 
         {sent ? (
-          <div className="p-4 rounded-lg text-center border border-aurora-teal" style={{ background: 'var(--surface-secondary)' }}>
-            <p className="text-sm font-bold text-aurora-teal mb-2">✓ Reset link sent!</p>
-            <p className="text-xs font-medium text-dust-gray">Check your email (or console in dev mode).</p>
+          <div className="p-4 rounded-lg text-center" style={{ background: 'rgba(5, 150, 105, 0.1)', border: '1px solid rgba(5, 150, 105, 0.2)' }}>
+            <p className="text-sm font-bold mb-2" style={{ color: 'var(--success)' }}>✓ Check your email</p>
+            <p className="text-xs font-medium text-dust-gray">If an account exists for this email, a password reset link has been sent.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 rounded-lg border border-meteor-red" style={{ background: 'var(--surface-secondary)' }}>
-                <p className="text-sm font-bold text-meteor-red">{error}</p>
+              <div className="p-3 rounded-lg" style={{ background: 'rgba(255, 92, 122, 0.1)', border: '1px solid rgba(255, 92, 122, 0.2)' }}>
+                <p className="text-sm font-bold" style={{ color: 'var(--danger)' }}>{error}</p>
               </div>
             )}
             <div>
