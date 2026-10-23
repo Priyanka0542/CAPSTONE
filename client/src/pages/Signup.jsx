@@ -29,6 +29,7 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError('');
 
     if (!allRulesPassed) {
@@ -41,7 +42,17 @@ export default function Signup() {
       await signup(name, email, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.message || 'Signup failed.');
+      if (err.response?.status === 429) {
+        const retryAfter = err.response?.data?.retryAfter;
+        if (retryAfter && typeof retryAfter === 'number') {
+          const minutes = Math.ceil(retryAfter / 60);
+          setError(`Too many attempts. Please wait ${minutes} minute${minutes > 1 ? 's' : ''} before trying again.`);
+        } else {
+          setError(err.response?.data?.message || 'Too many attempts. Please wait before trying again.');
+        }
+      } else {
+        setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.message || 'Signup failed.');
+      }
     } finally {
       setLoading(false);
     }

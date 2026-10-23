@@ -107,20 +107,50 @@ export default function PathDetail() {
       if (y + h > maxY) { doc.addPage(); y = 25; }
     };
 
-    // Sanitize text for PDF-safe rendering with built-in helvetica (Win-1252).
-    // Normalizes Unicode dashes/hyphens to ASCII hyphen-minus, removes
-    // zero-width characters that cause letter-spacing gaps, and converts
-    // smart quotes to ASCII equivalents.
+    // Sanitize text for PDF-safe rendering with built-in helvetica (Win-1252/WinAnsi).
+    // Decomposes unicode accents, normalizes dashes/hyphens to ASCII hyphen (0x2D),
+    // normalizes quotes/apostrophes, bullets, spaces, and removes zero-width/astral chars.
+    // This prevents jsPDF from falling back to UTF-16BE (which inserts \x00 null bytes
+    // causing visible spacing corruption e.g. "K  pop" or "6  week").
     const sanitize = (text) => {
       if (!text) return '';
-      return String(text)
-        .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\uFE58\uFE63\uFF0D]/g, '-')
-        .replace(/[\u2018\u2019\u201A\u2039\u203A]/g, "'")
-        .replace(/[\u201C\u201D\u201E\u00AB\u00BB]/g, '"')
-        .replace(/[\u200B\u200C\u200D\u2060\uFEFF\u00AD]/g, '')
-        .replace(/\u00A0/g, ' ')
-        .replace(/[\u2026]/g, '...')
-        .replace(/[\u2022\u2023\u25E6\u2043\u2219]/g, '-');
+      let str = String(text);
+
+      // 1. Normalize unicode (NFKD decomposes accented characters e.g. é -> e + accent)
+      str = str.normalize('NFKD').replace(/[\u0300-\u036F]/g, '');
+
+      // 2. Remove emojis and surrogate pairs
+      str = str.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '');
+
+      // 3. Hyphens and dashes -> standard ASCII '-' (U+002D)
+      str = str.replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\uFE58\uFE63\uFF0D\u00AD]/g, '-');
+
+      // 4. Quotes and apostrophes
+      str = str.replace(/[\u2018\u2019\u201A\u2039\u203A\u02BC\u02BB\u0060\u00B4]/g, "'");
+      str = str.replace(/[\u201C\u201D\u201E\u00AB\u00BB]/g, '"');
+
+      // 5. Spaces and zero-width characters
+      str = str.replace(/[\u200B\u200C\u200D\u2060\uFEFF]/g, '');
+      str = str.replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, ' ');
+
+      // 6. Common symbols
+      str = str.replace(/[\u2026]/g, '...');
+      str = str.replace(/[\u2022\u2023\u25E6\u2043\u2219\u00B7\u25CF]/g, '-');
+      str = str.replace(/[\u2192\u21D2\u2794\u279C]/g, '->');
+      str = str.replace(/[\u2190\u21D0]/g, '<-');
+      str = str.replace(/[\u2194\u21D4]/g, '<->');
+      str = str.replace(/[\u2713\u2714]/g, 'Done');
+      str = str.replace(/[\u2717\u2718]/g, 'x');
+      str = str.replace(/[\u20B9]/g, 'INR ');
+      str = str.replace(/[\u2248\u2243\u223C]/g, '~');
+      str = str.replace(/[\u2264]/g, '<=');
+      str = str.replace(/[\u2265]/g, '>=');
+      str = str.replace(/[\u2260]/g, '!=');
+
+      // 7. Strip any remaining characters outside WinAnsi / ASCII printable (32 - 255)
+      str = str.replace(/[^\x20-\x7E\xA0-\xFF]/g, '');
+
+      return str;
     };
 
     // ============================================================
@@ -150,7 +180,7 @@ export default function PathDetail() {
     });
     doc.text('Generated: ' + genDate, ml, y);
     y += 4;
-    doc.text('Prepared for: ' + userName, ml, y);
+    doc.text('Prepared for: ' + sanitize(userName), ml, y);
     y += 8;
 
     // Purple divider rule
@@ -185,11 +215,11 @@ export default function PathDetail() {
     // Stats grid - 3 columns x 2 rows
     const statItems = [
       { lbl: 'PROGRESS', val: prog + '%' },
-      { lbl: 'DURATION', val: stats.targetDurationText },
-      { lbl: 'ESTIMATED COST', val: fmtINR(path.estimatedCostINR) },
-      { lbl: 'PROJECTED SALARY', val: fmtINR(path.estimatedOutcomeSalaryINR) + '/yr' },
-      { lbl: 'RISK LEVEL', val: (path.riskLevel || 'N/A').toUpperCase() },
-      { lbl: 'WEEKLY WORKLOAD', val: (stats.estimatedWeeklyHours || 20) + ' hrs/wk' },
+      { lbl: 'DURATION', val: sanitize(stats.targetDurationText) },
+      { lbl: 'ESTIMATED COST', val: sanitize(fmtINR(path.estimatedCostINR)) },
+      { lbl: 'PROJECTED SALARY', val: sanitize(fmtINR(path.estimatedOutcomeSalaryINR) + '/yr') },
+      { lbl: 'RISK LEVEL', val: sanitize((path.riskLevel || 'N/A').toUpperCase()) },
+      { lbl: 'WEEKLY WORKLOAD', val: sanitize((stats.estimatedWeeklyHours || 20) + ' hrs/wk') },
     ];
     const colW = cw / 3;
     const gridY = y;

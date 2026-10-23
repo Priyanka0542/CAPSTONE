@@ -17,13 +17,24 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError('');
     setLoading(true);
     try {
       await login(email, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      if (err.response?.status === 429) {
+        const retryAfter = err.response?.data?.retryAfter;
+        if (retryAfter && typeof retryAfter === 'number') {
+          const minutes = Math.ceil(retryAfter / 60);
+          setError(`Too many attempts. Please wait ${minutes} minute${minutes > 1 ? 's' : ''} before trying again.`);
+        } else {
+          setError(err.response?.data?.message || 'Too many attempts. Please wait before trying again.');
+        }
+      } else {
+        setError(err.response?.data?.message || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

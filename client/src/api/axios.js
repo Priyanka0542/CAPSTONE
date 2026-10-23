@@ -15,58 +15,67 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor — auto-refresh on 401
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
+// Single active refresh promise to share across all concurrent 401s
+let activeRefreshPromise = null;
 
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
+    // If no config or request was already retried, do not retry
+    if (!originalRequest || originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    // Do NOT attempt token refresh for authentication/credentials endpoints
+    const url = originalRequest.url || '';
+    const isAuthEndpoint =
+      url.includes('/auth/login') ||
+      url.includes('/auth/signup') ||
+      url.includes('/auth/refresh') ||
+      url.includes('/auth/logout') ||
+      url.includes('/auth/forgot-password') ||
+      url.includes('/auth/reset-password');
+
+    if (isAuthEndpoint) {
+      return Promise.reject(error);
+    }
+
+    // Handle token expiration
     if (
       error.response?.status === 401 &&
-      error.response?.data?.code === 'TOKEN_EXPIRED' &&
-      !originalRequest._retry
+      error.response?.data?.code === 'TOKEN_EXPIRED'
     ) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
+      originalRequest._retry = true;
+
+      // Ensure ONLY ONE refresh operation is active at a time
+      if (!activeRefreshPromise) {
+        activeRefreshPromise = axios
+          .post('/api/auth/refresh', {}, { withCredentials: true })
+          .then(({ data }) => {
+            if (data?.accessToken) {
+              localStorage.setItem('accessToken', data.accessToken);
+              return data.accessToken;
+            }
+            throw new Error('No access token returned from refresh');
           })
-          .catch((err) => Promise.reject(err));
+          .catch((refreshError) => {
+            localStorage.removeItem('accessToken');
+            return Promise.reject(refreshError);
+          })
+          .finally(() => {
+            activeRefreshPromise = null;
+          });
       }
 
-      originalRequest._retry = true;
-      isRefreshing = true;
-
+      // All concurrent requests await the exact same single refresh promise
       try {
-        const { data } = await axios.post('/api/auth/refresh', {}, { withCredentials: true });
-        localStorage.setItem('accessToken', data.accessToken);
-        processQueue(null, data.accessToken);
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        const newAccessToken = await activeRefreshPromise;
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError, null);
-        localStorage.removeItem('accessToken');
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
+      } catch (refreshErr) {
+        return Promise.reject(refreshErr);
       }
     }
 
@@ -75,3 +84,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+

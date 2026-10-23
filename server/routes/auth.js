@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const authController = require('../controllers/authController');
 const { validate } = require('../middleware/validate');
-const { authLimiter } = require('../middleware/rateLimiter');
+const { authLimiter, refreshLimiter } = require('../middleware/rateLimiter');
 const auth = require('../middleware/auth');
 const {
   signupSchema,
@@ -10,15 +10,18 @@ const {
   resetPasswordSchema,
 } = require('../validators/authValidators');
 
-// Rate limit all auth routes
-router.use(authLimiter);
+// Credential endpoints protected by authLimiter against brute-force attacks
+router.post('/signup', authLimiter, validate(signupSchema), authController.signup);
+router.post('/login', authLimiter, validate(loginSchema), authController.login);
+router.post('/forgot-password', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
+router.post('/reset-password', authLimiter, validate(resetPasswordSchema), authController.resetPassword);
 
-router.post('/signup', validate(signupSchema), authController.signup);
-router.post('/login', validate(loginSchema), authController.login);
-router.post('/refresh', authController.refresh);
+// Token refresh protected by refreshLimiter
+router.post('/refresh', refreshLimiter, authController.refresh);
+
+// Session termination and profile access (not brute-force targets)
 router.post('/logout', authController.logout);
-router.post('/forgot-password', validate(forgotPasswordSchema), authController.forgotPassword);
-router.post('/reset-password', validate(resetPasswordSchema), authController.resetPassword);
 router.get('/me', auth, authController.getMe);
 
 module.exports = router;
+

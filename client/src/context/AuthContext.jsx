@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 
 const AuthContext = createContext(null);
@@ -6,6 +6,8 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const fetchingUserRef = useRef(false);
+  const loggingOutRef = useRef(false);
 
   // Check auth state on mount
   useEffect(() => {
@@ -18,6 +20,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const fetchUser = async () => {
+    if (fetchingUserRef.current) return;
+    fetchingUserRef.current = true;
     try {
       const { data } = await api.get('/auth/me');
       setUser(data.user);
@@ -25,6 +29,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('accessToken');
       setUser(null);
     } finally {
+      fetchingUserRef.current = false;
       setLoading(false);
     }
   };
@@ -44,13 +49,17 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    if (loggingOutRef.current) return;
+    loggingOutRef.current = true;
     try {
       await api.post('/auth/logout');
     } catch {
       // Ignore errors on logout
+    } finally {
+      localStorage.removeItem('accessToken');
+      setUser(null);
+      loggingOutRef.current = false;
     }
-    localStorage.removeItem('accessToken');
-    setUser(null);
   };
 
   return (

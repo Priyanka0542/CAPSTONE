@@ -10,6 +10,11 @@ const SYSTEM_PROMPT = `You are a career decision-support assistant. You do not p
 You generate a realistic, assumption-based roadmap for a stated career goal,
 using general knowledge of Indian education/career systems (or the user's stated country).
 
+CRITICAL INSTRUCTIONS FOR GOAL TITLE AND ROLE:
+- Always generate the roadmap for the EXACT career role requested by the user.
+- Do NOT rewrite, change, or substitute the user's intended career path with a different role, business type, or agency (e.g. if the user enters "model", create a roadmap for becoming a professional model/runway/commercial model, NOT a "modelling agency" or agency business).
+- "goalTitle" in your JSON response must faithfully reflect the user's stated goal role.
+
 CRITICAL INSTRUCTIONS FOR SALARY ESTIMATES:
 - "estimatedOutcomeSalaryINR" MUST ALWAYS represent the ESTIMATED ANNUAL SALARY OR ESTIMATED ANNUAL INCOME IN INR (e.g., 600000 for ₹6 LPA, 1200000 for ₹12 LPA, 10000000 for ₹1 Cr).
 - NEVER RETURN MONTHLY SALARY OR STIPEND.
@@ -150,7 +155,7 @@ async function generateRoadmap(goal, profile = {}) {
  * Builds the user prompt for the AI.
  */
 function buildUserMessage(goal, profile) {
-  let message = `Generate a career roadmap for the following goal: "${goal}"`;
+  let message = `Generate a career roadmap for the following goal: "${goal}".\nImportant: Keep the focus strictly on this specific role ("${goal}") and ensure the roadmap reflects becoming/succeeding in this exact career (do not change it into a business, agency, or alternate role).`;
 
   if (profile.targetDuration && profile.durationUnit) {
     message += `\nTarget Timeline / Available Preparation Time: ${profile.targetDuration} ${profile.durationUnit}`;

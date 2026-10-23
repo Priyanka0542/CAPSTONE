@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usePaths } from '../hooks/usePaths';
 import { useStreak, useActivity, useBadges } from '../hooks/useStreak';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Starfield from '../components/common/Starfield';
 import PathCard from '../components/dashboard/PathCard';
 import StreakHeatmap from '../components/dashboard/StreakHeatmap';
@@ -17,6 +17,7 @@ import LandingHero from '../components/landing/LandingHero';
 import ThemeToggle from '../components/common/ThemeToggle';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { user, logout, fetchUser } = useAuth();
   const { paths, loading: pathsLoading, createPath, updatePath, deletePath } = usePaths();
   const { currentStreak, longestStreak, history, fetchStreaks } = useStreak();
@@ -51,6 +52,18 @@ export default function Dashboard() {
       }
       fetchUser();
     } catch (err) {
+      if (err.response?.status === 409 && (err.response?.data?.existingPath || err.response?.data?.careerPath)) {
+        const existing = err.response.data.existingPath || err.response.data.careerPath;
+        setShowNewGoal(false);
+        setToast({
+          message: err.response.data.message || `You are already pursuing "${existing.goalTitle}".`,
+          type: 'info',
+        });
+        if (existing._id) {
+          navigate(`/paths/${existing._id}`);
+        }
+        return;
+      }
       setToast({ message: err.response?.data?.message || 'Failed to create path', type: 'error' });
     } finally {
       setCreating(false);

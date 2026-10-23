@@ -9,8 +9,41 @@ exports.createPath = async (req, res, next) => {
     const { goal, profile } = req.body;
     const userId = req.user.userId;
 
+    const rawGoal = (goal || '').trim();
+    if (!rawGoal) {
+      return res.status(400).json({ message: 'Career goal is required.' });
+    }
+
+    // Preserve the user's typed career goal intact (normalized whitespace)
+    const displayGoal = rawGoal.replace(/\s+/g, ' ');
+
+    // Compute deterministic normalized slug
+    const goalSlug = displayGoal
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/[\s-]+/g, '-');
+
+    // Check if the user already has an active career path for this goal
+    const existingPath = await CareerPath.findOne({
+      userId,
+      $or: [
+        { goalSlug },
+        { goalTitle: new RegExp(`^${displayGoal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+      ],
+      status: { $ne: 'deleted' },
+    });
+
+    if (existingPath) {
+      return res.status(409).json({
+        message: `You are already pursuing the career path "${existingPath.goalTitle}".`,
+        existingPath,
+        careerPath: existingPath,
+      });
+    }
+
     // Call LLM
-    const roadmapData = await generateRoadmap(goal, profile || {});
+    const roadmapData = await generateRoadmap(displayGoal, profile || {});
 
     // Extract target timeline
     const targetDuration = profile?.targetDuration || req.body.targetDuration || roadmapData.estimatedMonths;
@@ -19,17 +52,10 @@ exports.createPath = async (req, res, next) => {
     const targetCompletionDate = profile?.targetCompletionDate || req.body.targetCompletionDate || new Date(Date.now() + monthsToDays * 86400000);
     const estimatedWeeklyHours = roadmapData.estimatedWeeklyHours || 20;
 
-    // Compute goalSlug (normalized, lowercase)
-    const goalSlug = roadmapData.goalTitle
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, '')
-      .trim()
-      .replace(/\s+/g, '-');
-
-    // Create career path
+    // Create career path with displayGoal preserved
     const careerPath = await CareerPath.create({
       userId,
-      goalTitle: roadmapData.goalTitle,
+      goalTitle: displayGoal,
       goalSlug,
       estimatedMonths: roadmapData.estimatedMonths,
       estimatedCostINR: roadmapData.estimatedCostINR,
