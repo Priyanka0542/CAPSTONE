@@ -11,8 +11,15 @@ export default function MemberList({ members, loading }) {
 
   if (!members || members.length === 0) {
     return (
-      <div className="text-center py-8 text-dust-gray text-sm">
-        No one else is on this path yet — you're the first!
+      <div className="text-center py-10 px-4 text-dust-gray text-sm flex flex-col items-center justify-center">
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center text-xl mb-3"
+          style={{ background: 'var(--void-black)', border: '1px solid var(--card-border)' }}
+        >
+          👥
+        </div>
+        <p className="font-semibold text-starlight mb-1">No companions yet</p>
+        <p className="text-xs text-dust-gray">You're currently the only one pursuing this path.</p>
       </div>
     );
   }

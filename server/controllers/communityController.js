@@ -23,29 +23,51 @@ exports.getMembers = async (req, res, next) => {
   try {
     const { goalSlug } = req.params;
     const currentUserId = req.user.userId;
+    const normalizedGoalSlug = (goalSlug || '').trim().toLowerCase();
 
-    // Find all paths with this goalSlug (excluding current user)
-    const paths = await CareerPath.find({
-      goalSlug,
-      userId: { $ne: currentUserId },
+    // Verify current user is pursuing this path
+    const userPath = await CareerPath.findOne({
+      userId: currentUserId,
+      goalSlug: normalizedGoalSlug,
       status: { $ne: 'deleted' },
-    }).populate('userId', 'name');
-
-    // Get user streak data
-    const userIds = paths.map(p => p.userId);
-    const users = await User.find({ _id: { $in: userIds } }).select('name currentStreak');
-
-    const members = paths.map(path => {
-      const user = users.find(u => u._id.toString() === path.userId.toString());
-      return {
-        displayName: user?.name || 'Anonymous',
-        currentStreak: user?.currentStreak || 0,
-        timelineHealth: path.timelineHealth,
-        currentPace: path.currentPace,
-      };
     });
 
-    res.json({ members });
+    if (!userPath) {
+      return res.status(403).json({ message: 'You must be pursuing this career path to view its members.' });
+    }
+
+    // Find all active/non-deleted paths for this goal to calculate accurate metrics
+    const allPaths = await CareerPath.find({
+      goalSlug: normalizedGoalSlug,
+      status: { $ne: 'deleted' },
+    }).populate('userId', 'name currentStreak');
+
+    const seenUsers = new Set();
+    const members = [];
+    const allUniqueUsers = new Set();
+
+    for (const path of allPaths) {
+      if (!path.userId || !path.userId._id) continue;
+      const uid = path.userId._id.toString();
+      allUniqueUsers.add(uid);
+
+      // Exclude current user from companions list
+      if (uid === currentUserId.toString()) continue;
+
+      if (!seenUsers.has(uid)) {
+        seenUsers.add(uid);
+        members.push({
+          displayName: path.userId.name || 'Anonymous',
+          currentStreak: path.userId.currentStreak || 0,
+          timelineHealth: path.timelineHealth,
+          currentPace: path.currentPace,
+        });
+      }
+    }
+
+    const totalPursuing = allUniqueUsers.size;
+
+    res.json({ members, totalPursuing });
   } catch (error) {
     next(error);
   }
@@ -56,15 +78,34 @@ exports.getMessages = async (req, res, next) => {
   try {
     const { goalSlug } = req.params;
     const { since } = req.query;
+    const userId = req.user.userId;
+    const normalizedGoalSlug = (goalSlug || '').trim().toLowerCase();
 
-    const query = { goalSlug };
-    if (since) {
-      query.createdAt = { $gt: new Date(since) };
+    // Verify requesting user is pursuing this path
+    const userPath = await CareerPath.findOne({
+      userId,
+      goalSlug: normalizedGoalSlug,
+      status: { $ne: 'deleted' },
+    });
+
+    if (!userPath) {
+      return res.status(403).json({ message: 'You must be pursuing this career path to view its messages.' });
     }
 
-    const messages = await CommunityMessage.find(query)
-      .sort({ createdAt: 1 })
-      .limit(50);
+    let messages;
+    if (since) {
+      messages = await CommunityMessage.find({
+        goalSlug: normalizedGoalSlug,
+        createdAt: { $gt: new Date(since) },
+      })
+        .sort({ createdAt: 1 })
+        .limit(100);
+    } else {
+      const recent = await CommunityMessage.find({ goalSlug: normalizedGoalSlug })
+        .sort({ createdAt: -1 })
+        .limit(100);
+      messages = recent.reverse();
+    }
 
     res.json({ messages });
   } catch (error) {
@@ -78,6 +119,7 @@ exports.postMessage = async (req, res, next) => {
     const { goalSlug } = req.params;
     const { message } = req.body;
     const userId = req.user.userId;
+    const normalizedGoalSlug = (goalSlug || '').trim().toLowerCase();
 
     // Rate limit check
     const lastMessageTime = userLastMessageTime.get(userId.toString());
@@ -104,24 +146,24 @@ exports.postMessage = async (req, res, next) => {
       return res.status(400).json({ message: 'Message contains inappropriate content.' });
     }
 
-    // Verify user has a path with this goalSlug
+    // Verify user has an active/non-deleted path with this goalSlug
     const userPath = await CareerPath.findOne({
       userId,
-      goalSlug,
+      goalSlug: normalizedGoalSlug,
       status: { $ne: 'deleted' },
     });
 
     if (!userPath) {
-      return res.status(403).json({ message: 'You must be pursuing this goal to post messages.' });
+      return res.status(403).json({ message: 'You must be pursuing this career path to post messages.' });
     }
 
     // Get user display name
     const user = await User.findById(userId).select('name');
     const displayName = user?.name || 'Anonymous';
 
-    // Create message
+    // Create message associated with this path and user
     const newMessage = await CommunityMessage.create({
-      goalSlug,
+      goalSlug: normalizedGoalSlug,
       userId,
       displayName,
       message: message.trim(),
@@ -140,10 +182,23 @@ exports.postMessage = async (req, res, next) => {
 exports.reportMessage = async (req, res, next) => {
   try {
     const { goalSlug, messageId } = req.params;
+    const userId = req.user.userId;
+    const normalizedGoalSlug = (goalSlug || '').trim().toLowerCase();
+
+    // Verify user is pursuing this path
+    const userPath = await CareerPath.findOne({
+      userId,
+      goalSlug: normalizedGoalSlug,
+      status: { $ne: 'deleted' },
+    });
+
+    if (!userPath) {
+      return res.status(403).json({ message: 'You must be pursuing this career path to report messages.' });
+    }
 
     const message = await CommunityMessage.findOne({
       _id: messageId,
-      goalSlug,
+      goalSlug: normalizedGoalSlug,
     });
 
     if (!message) {

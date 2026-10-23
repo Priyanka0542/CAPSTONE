@@ -15,6 +15,7 @@ export default function Community() {
   const [selectedGoalTitle, setSelectedGoalTitle] = useState('');
   const [members, setMembers] = useState([]);
   const [membersLoading, setMembersLoading] = useState(false);
+  const [totalPursuing, setTotalPursuing] = useState(1);
 
   // Get unique goals from user's paths
   const userGoals = paths
@@ -22,17 +23,23 @@ export default function Community() {
     .map(p => ({
       _id: p._id,
       goalTitle: p.goalTitle,
-      goalSlug: p.goalSlug,
+      goalSlug: p.goalSlug || (p.goalTitle ? p.goalTitle.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-') : ''),
     }))
     .filter((goal, index, self) => 
-      index === self.findIndex(g => g.goalSlug === goal.goalSlug)
+      goal.goalSlug && index === self.findIndex(g => g.goalSlug === goal.goalSlug)
     );
 
-  // Select first goal by default
+  // Select first goal by default or validate current selection
   useEffect(() => {
-    if (userGoals.length > 0 && !selectedGoalSlug) {
-      setSelectedGoalSlug(userGoals[0].goalSlug);
-      setSelectedGoalTitle(userGoals[0].goalTitle);
+    if (userGoals.length > 0) {
+      const currentValid = userGoals.some(g => g.goalSlug === selectedGoalSlug);
+      if (!selectedGoalSlug || !currentValid) {
+        setSelectedGoalSlug(userGoals[0].goalSlug);
+        setSelectedGoalTitle(userGoals[0].goalTitle);
+      }
+    } else {
+      setSelectedGoalSlug(null);
+      setSelectedGoalTitle('');
     }
   }, [userGoals, selectedGoalSlug]);
 
@@ -40,20 +47,32 @@ export default function Community() {
   useEffect(() => {
     if (!selectedGoalSlug) return;
 
+    let isSubscribed = true;
     const fetchMembers = async () => {
       setMembersLoading(true);
       try {
         const { data } = await api.get(`/community/${selectedGoalSlug}/members`);
-        setMembers(data.members);
+        if (isSubscribed) {
+          setMembers(data.members || []);
+          setTotalPursuing(typeof data.totalPursuing === 'number' ? data.totalPursuing : (data.members ? data.members.length + 1 : 1));
+        }
       } catch (err) {
-        console.error('Failed to fetch members:', err);
-        setMembers([]);
+        if (isSubscribed) {
+          console.error('Failed to fetch members:', err);
+          setMembers([]);
+          setTotalPursuing(1);
+        }
       } finally {
-        setMembersLoading(false);
+        if (isSubscribed) {
+          setMembersLoading(false);
+        }
       }
     };
 
     fetchMembers();
+    return () => {
+      isSubscribed = false;
+    };
   }, [selectedGoalSlug]);
 
   if (userGoals.length === 0) {
@@ -134,15 +153,30 @@ export default function Community() {
             {/* Right: Chat window */}
             <div className="lg:col-span-2">
               <div className="card h-full flex flex-col">
-                <div className="p-4 border-b" style={{ borderColor: 'var(--card-border)' }}>
-                  <h2 className="text-lg font-bold text-starlight">
-                    {selectedGoalTitle} Community
-                  </h2>
-                  <p className="text-sm text-dust-gray">
-                    Connect with others pursuing the same goal
-                  </p>
+                <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--card-border)' }}>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs px-2 py-0.5 rounded bg-comet-violet/20 text-comet-violet font-semibold uppercase tracking-wider">
+                        Path Group Chat
+                      </span>
+                      <h2 className="text-lg font-bold text-starlight">
+                        {selectedGoalTitle} Community
+                      </h2>
+                    </div>
+                    <p className="text-xs text-dust-gray mt-1">
+                      Shared group conversation for everyone pursuing {selectedGoalTitle}
+                    </p>
+                  </div>
+                  <div className="text-xs text-dust-gray px-3 py-1 rounded-full hidden sm:block" style={{ background: 'var(--void-black)', border: '1px solid var(--card-border)' }}>
+                    👥 {totalPursuing} pursuing
+                  </div>
                 </div>
-                <ChatWindow goalSlug={selectedGoalSlug} currentUserId={user?.userId} />
+                <ChatWindow
+                  key={selectedGoalSlug}
+                  goalSlug={selectedGoalSlug}
+                  goalTitle={selectedGoalTitle}
+                  currentUserId={user?.id || user?._id || user?.userId}
+                />
               </div>
             </div>
           </div>
