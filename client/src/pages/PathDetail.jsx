@@ -613,7 +613,7 @@ export default function PathDetail() {
 
           {/* Peer Benchmark */}
           <div className="mb-6 animate-fadeIn" style={{ animationDelay: '0.05s' }}>
-            <PeerBenchmark goalTitle={path.goalTitle} />
+            <PeerBenchmark goalTitle={path.goalTitle} goalSlug={path.goalSlug} />
           </div>
 
           <div

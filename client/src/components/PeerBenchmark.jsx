@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
-export default function PeerBenchmark({ goalTitle }) {
+export default function PeerBenchmark({ goalTitle, goalSlug }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (!goalTitle) return;
+    if (!goalTitle && !goalSlug) return;
 
     const fetchBenchmark = async () => {
       setLoading(true);
       setError(false);
       try {
         const { data: result } = await api.get('/paths/benchmark', {
-          params: { goalTitle },
+          params: { goalSlug, goalTitle },
         });
         setData(result);
       } catch {
@@ -25,7 +25,7 @@ export default function PeerBenchmark({ goalTitle }) {
     };
 
     fetchBenchmark();
-  }, [goalTitle]);
+  }, [goalTitle, goalSlug]);
 
   if (loading) {
     return (

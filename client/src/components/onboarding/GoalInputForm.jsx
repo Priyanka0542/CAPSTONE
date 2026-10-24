@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function GoalInputForm({ onSubmit, loading }) {
+export default function GoalInputForm({ onSubmit, loading, externalError, onClearExternalError }) {
   const [goal, setGoal] = useState('');
   const [timelineType, setTimelineType] = useState('duration'); // 'duration' | 'date'
   const [targetDuration, setTargetDuration] = useState('6');
@@ -44,12 +44,20 @@ export default function GoalInputForm({ onSubmit, loading }) {
           rows={3}
           placeholder='e.g. "I want to become a software engineer at a top tech firm" or "I have 18 months to prepare for UPSC"'
           value={goal}
-          onChange={(e) => setGoal(e.target.value)}
+          onChange={(e) => {
+            setGoal(e.target.value);
+            if (error) setError('');
+            if (onClearExternalError) onClearExternalError();
+          }}
           disabled={loading}
           required
           id="goal-input"
         />
-        {error && <p className="text-meteor-red text-xs mt-1">{error}</p>}
+        {(error || externalError) && (
+          <div className="mt-2 p-2.5 rounded-lg bg-meteor-red/10 border border-meteor-red/20 text-meteor-red text-xs font-medium">
+            {error || externalError}
+          </div>
+        )}
       </div>
 
       {/* Target Timeline Section (Required) */}

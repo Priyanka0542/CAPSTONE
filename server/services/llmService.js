@@ -262,7 +262,8 @@ Guidelines:
 - If the user has completed milestones, acknowledge them specifically.
 - If behind schedule, gently suggest what to prioritize.
 - Suggest what to focus on next based on the remaining milestones.
-- Keep responses concise (2-4 paragraphs max).
+- Reply in at most 3 short sentences (under ~60 words total), plain text only, no headings, no bullet lists, no long explanations.
+- If the user asks for detail, give the single most useful next step, not a full plan.
 - Do NOT claim the user completed something the data shows as incomplete.`;
 
     const messages = [
@@ -278,7 +279,7 @@ Guidelines:
       model: env.GROQ_MODEL,
 
       temperature: 0.7,
-      max_tokens: 1024,
+      max_tokens: 180,
     });
 
     return chatCompletion.choices[0]?.message?.content || '';
@@ -288,7 +289,16 @@ Guidelines:
   }
 }
 
+/**
+ * Resolves canonical slug: alias map first, then tiny Groq call with safe fallback.
+ */
+async function resolveCanonicalSlug(goalText) {
+  const { getCanonicalGoalKey } = require('../utils/goalKey');
+  return getCanonicalGoalKey(goalText, groq, env.GROQ_MODEL);
+}
+
 module.exports = {
   generateRoadmap,
   mentorChat,
+  resolveCanonicalSlug,
 };

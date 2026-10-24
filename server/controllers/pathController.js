@@ -1,7 +1,8 @@
 const CareerPath = require('../models/CareerPath');
 const User = require('../models/User');
-const { generateRoadmap, mentorChat } = require('../services/llmService');
+const { generateRoadmap, mentorChat, resolveCanonicalSlug } = require('../services/llmService');
 const { checkAndAwardBadges } = require('../services/badgeService');
+const { getGoalKey } = require('../utils/goalKey');
 
 // POST /api/paths — Create a new career path (triggers LLM)
 exports.createPath = async (req, res, next) => {
@@ -17,26 +18,19 @@ exports.createPath = async (req, res, next) => {
     // Preserve the user's typed career goal intact (normalized whitespace)
     const displayGoal = rawGoal.replace(/\s+/g, ' ');
 
-    // Compute deterministic normalized slug
-    const goalSlug = displayGoal
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .trim()
-      .replace(/[\s-]+/g, '-');
+    // Compute canonical goal slug (handles aliases like IAS / Indian Administrative Services)
+    const goalSlug = await resolveCanonicalSlug(displayGoal);
 
-    // Check if the user already has an active career path for this goal
+    // Check if the user already has an active career path for this goal (BEFORE calling LLM)
     const existingPath = await CareerPath.findOne({
       userId,
-      $or: [
-        { goalSlug },
-        { goalTitle: new RegExp(`^${displayGoal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
-      ],
+      goalSlug,
       status: { $ne: 'deleted' },
     });
 
     if (existingPath) {
       return res.status(409).json({
-        message: `You are already pursuing the career path "${existingPath.goalTitle}".`,
+        message: 'You already have a path for this goal.',
         existingPath,
         careerPath: existingPath,
       });
@@ -280,20 +274,26 @@ exports.mentorChat = async (req, res, next) => {
   }
 };
 
-// GET /api/paths/benchmark?goalTitle=...
+// GET /api/paths/benchmark?goalSlug=... or ?goalTitle=...
 exports.getPeerBenchmark = async (req, res, next) => {
   try {
-    const { goalTitle } = req.query;
-    if (!goalTitle) {
-      return res.status(400).json({ message: 'goalTitle is required.' });
+    const { goalTitle, goalSlug: reqSlug } = req.query;
+    const canonicalSlug = reqSlug || (goalTitle ? getGoalKey(goalTitle) : null);
+
+    if (!canonicalSlug && !goalTitle) {
+      return res.status(400).json({ message: 'goalSlug or goalTitle is required.' });
     }
+
+    const matchQuery = canonicalSlug
+      ? { goalSlug: canonicalSlug, status: { $ne: 'deleted' } }
+      : {
+          goalTitle: { $regex: new RegExp(goalTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') },
+          status: { $ne: 'deleted' },
+        };
 
     const results = await CareerPath.aggregate([
       {
-        $match: {
-          goalTitle: { $regex: new RegExp(goalTitle.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'), 'i') },
-          status: { $ne: 'deleted' },
-        },
+        $match: matchQuery,
       },
       {
         $group: {

@@ -15,7 +15,7 @@ export default function MentorChat({ pathId, goalTitle, isOpen, onClose }) {
       setMessages([
         {
           role: 'assistant',
-          content: `Hey! I'm your "Future Self" — the version of you who already achieved the goal "${goalTitle}". Ask me anything about the journey ahead, what to focus on, or how to stay on track. I'm here to help based on your actual roadmap and progress.\n\n⚠️ This is an AI simulation for planning purposes, not a real prediction.`,
+          content: `Hey! I'm "Evolve Me" — the version of you who already achieved the goal "${goalTitle}". Ask me anything about the journey ahead, what to focus on, or how to stay on track. I'm here to help based on your actual roadmap and progress.\n\n⚠️ This is an AI simulation for planning purposes, not a real prediction.`,
         },
       ]);
     }
@@ -75,7 +75,7 @@ export default function MentorChat({ pathId, goalTitle, isOpen, onClose }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="🤖 Talk to your Future Self">
+    <Modal isOpen={isOpen} onClose={onClose} title="🤖 Evolve Me">
       <div className="mentor-chat-container">
         <div className="mentor-chat-messages">
           {messages.map((msg, i) => (
@@ -132,7 +132,7 @@ export default function MentorChat({ pathId, goalTitle, isOpen, onClose }) {
           <textarea
             ref={inputRef}
             className="mentor-chat-input"
-            placeholder="Ask your future self anything..."
+            placeholder="Ask Evolve Me anything..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}

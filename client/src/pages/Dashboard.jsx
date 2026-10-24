@@ -26,6 +26,7 @@ export default function Dashboard() {
 
   const [showNewGoal, setShowNewGoal] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [toast, setToast] = useState(null);
   const [showEvolveMe, setShowEvolveMe] = useState(false);
@@ -39,6 +40,7 @@ export default function Dashboard() {
 
   const handleCreatePath = async (goal, profile) => {
     setCreating(true);
+    setCreateError('');
     try {
       const data = await createPath(goal, profile);
       setShowNewGoal(false);
@@ -52,19 +54,18 @@ export default function Dashboard() {
       }
       fetchUser();
     } catch (err) {
-      if (err.response?.status === 409 && (err.response?.data?.existingPath || err.response?.data?.careerPath)) {
-        const existing = err.response.data.existingPath || err.response.data.careerPath;
-        setShowNewGoal(false);
+      if (err.response?.status === 409) {
+        const duplicateMsg = 'This path already exists. You already have a path for this goal.';
+        setCreateError(duplicateMsg);
         setToast({
-          message: err.response.data.message || `You are already pursuing "${existing.goalTitle}".`,
-          type: 'info',
+          message: duplicateMsg,
+          type: 'error',
         });
-        if (existing._id) {
-          navigate(`/paths/${existing._id}`);
-        }
         return;
       }
-      setToast({ message: err.response?.data?.message || 'Failed to create path', type: 'error' });
+      const genericMsg = err.response?.data?.message || 'Failed to create path';
+      setCreateError(genericMsg);
+      setToast({ message: genericMsg, type: 'error' });
     } finally {
       setCreating(false);
     }
@@ -140,8 +141,22 @@ export default function Dashboard() {
           )}
 
           {/* New goal modal */}
-          <Modal isOpen={showNewGoal} onClose={() => !creating && setShowNewGoal(false)} title="New career goal">
-            <GoalInputForm onSubmit={handleCreatePath} loading={creating} />
+          <Modal
+            isOpen={showNewGoal}
+            onClose={() => {
+              if (!creating) {
+                setShowNewGoal(false);
+                setCreateError('');
+              }
+            }}
+            title="New career goal"
+          >
+            <GoalInputForm
+              onSubmit={handleCreatePath}
+              loading={creating}
+              externalError={createError}
+              onClearExternalError={() => setCreateError('')}
+            />
           </Modal>
 
           {/* Main layout */}
@@ -260,19 +275,19 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Future Self Guide FAB */}
+      {/* Evolve Me FAB */}
       {hasAnyPaths && (
         <button
           onClick={() => {
             if (!focusPath) {
-              setToast({ message: 'Select a goal first so your Future Self can guide you', type: 'error' });
+              setToast({ message: 'Select a goal first so Evolve Me can guide you', type: 'error' });
               return;
             }
             setShowEvolveMe(true);
           }}
           className="fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50"
           style={{ background: 'linear-gradient(135deg, var(--comet-violet), var(--aurora-teal))' }}
-          title="Talk to your Future Self"
+          title="Evolve Me"
         >
           <span className="text-2xl">🤖</span>
         </button>
