@@ -10,7 +10,6 @@ import PeerBenchmark from '../components/PeerBenchmark';
 import ResourcesModal from '../components/common/ResourcesModal';
 import JobOffersModal from '../components/common/JobOffersModal';
 import { calculateProgress, calculateTimelineStats } from '../utils/pathUtils';
-import { getResourcesForMilestone } from '../data/milestoneResources';
 import { getJobResourcesForCareer } from '../data/jobResources';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { jsPDF } from 'jspdf';
@@ -22,7 +21,7 @@ export default function PathDetail() {
   const [path, setPath] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
-  const [resourcesModal, setResourcesModal] = useState({ isOpen: false, milestone: null, resources: [] });
+  const [resourcesModal, setResourcesModal] = useState({ isOpen: false, milestone: null, careerPath: '' });
   const [jobOffersModal, setJobOffersModal] = useState({ isOpen: false, resources: [] });
 
   useEffect(() => {
@@ -51,11 +50,10 @@ export default function PathDetail() {
   };
 
   const handleOpenResources = (milestone) => {
-    const resources = getResourcesForMilestone(milestone, path.goalTitle);
     setResourcesModal({
       isOpen: true,
       milestone: milestone,
-      resources: resources
+      careerPath: path?.goalTitle || '',
     });
   };
 
@@ -866,9 +864,9 @@ export default function PathDetail() {
 
       <ResourcesModal
         isOpen={resourcesModal.isOpen}
-        onClose={() => setResourcesModal({ isOpen: false, milestone: null, resources: [] })}
+        onClose={() => setResourcesModal({ isOpen: false, milestone: null, careerPath: '' })}
         milestone={resourcesModal.milestone}
-        resources={resourcesModal.resources}
+        careerPath={path?.goalTitle || resourcesModal.careerPath}
       />
 
       <JobOffersModal

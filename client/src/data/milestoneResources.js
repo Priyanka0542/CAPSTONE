@@ -809,11 +809,23 @@ export const milestoneResources = {
 
 // Helper function to get resources for a milestone based on goal and milestone text
 export function getResourcesForMilestone(milestoneText, goalTitle = '') {
-  const lowerMilestone = milestoneText.toLowerCase();
-  const lowerGoal = goalTitle.toLowerCase();
-  
-  // Combine goal and milestone for better matching
-  const combinedText = `${lowerGoal} ${lowerMilestone}`;
+  const careerPathName = (goalTitle || '').trim();
+  const milestoneName = (milestoneText || '').trim();
+  const query = careerPathName ? `${careerPathName} ${milestoneName}` : milestoneName;
+  return [
+    {
+      title: 'Google',
+      description: `Search "${query}" on Google`,
+      type: 'google',
+      url: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+    },
+    {
+      title: 'YouTube',
+      description: `Search "${query}" on YouTube`,
+      type: 'youtube',
+      url: `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
+    },
+  ];
   
   // Define career-specific resources
   const careerResources = {
