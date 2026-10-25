@@ -278,6 +278,12 @@ body {
   opacity: 0.7;
 }
 
+[data-theme="dark"] .login-page .login-input::placeholder,
+[data-theme="dark"] .signup-page .signup-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
 /* Starfield */
 .starfield {
   position: fixed;

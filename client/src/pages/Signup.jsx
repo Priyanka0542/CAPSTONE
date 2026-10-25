@@ -63,10 +63,10 @@ export default function Signup() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-3 sm:p-6 lg:p-10 relative overflow-hidden transition-colors duration-300"
+      className="signup-page min-h-screen flex items-center justify-center p-3 sm:p-6 lg:p-10 relative overflow-hidden transition-colors duration-300"
       style={{
         background: isDark
-          ? 'radial-gradient(circle at 20% 20%, #0d1224 0%, #060813 100%)'
+          ? 'radial-gradient(circle at 20% 20%, var(--surface-secondary) 0%, var(--background) 100%)'
           : 'radial-gradient(circle at 20% 20%, #f1f5f9 0%, #e2e8f0 100%)',
       }}
     >
@@ -81,12 +81,15 @@ export default function Signup() {
       <div
         className="relative z-10 w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex flex-col lg:flex-row border animate-fadeIn"
         style={{
-          background: isDark ? '#0b0f19' : '#ffffff',
+          background: isDark ? 'var(--card)' : '#ffffff',
           borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
         }}
       >
         {/* Left: Form Panel */}
-        <div className="w-full lg:w-1/2 p-6 sm:p-10 lg:p-12 flex flex-col justify-center">
+        <div
+          className="w-full lg:w-1/2 p-6 sm:p-10 lg:p-12 flex flex-col justify-center"
+          style={{ background: isDark ? 'var(--surface-secondary)' : 'transparent' }}
+        >
           <div>
             {/* Logo */}
             <div className="flex items-center gap-3">
@@ -94,13 +97,13 @@ export default function Signup() {
               <div>
                 <h1
                   className="text-2xl font-extrabold tracking-tight flex items-center"
-                  style={{ color: isDark ? '#ffffff' : '#0f172a' }}
+                  style={{ color: isDark ? 'var(--text-primary)' : '#0f172a' }}
                 >
                   Future<span style={{ color: '#8a5cff' }}>Era</span>
                 </h1>
                 <p
                   className="text-[11px] font-medium tracking-wide"
-                  style={{ color: isDark ? '#94a3b8' : '#64748b' }}
+                  style={{ color: isDark ? 'var(--text-secondary)' : '#64748b' }}
                 >
                   Your Career &bull; Our AI &bull; A Brighter Future
                 </p>
@@ -111,13 +114,13 @@ export default function Signup() {
             <div className="mt-7 mb-5">
               <h2
                 className="text-3xl font-extrabold tracking-tight mb-2"
-                style={{ color: isDark ? '#ffffff' : '#0f172a' }}
+                style={{ color: isDark ? 'var(--text-primary)' : '#0f172a' }}
               >
                 Create an <span style={{ color: '#8a5cff' }}>Account</span>
               </h2>
               <p
                 className="text-sm font-medium"
-                style={{ color: isDark ? '#94a3b8' : '#64748b' }}
+                style={{ color: isDark ? 'var(--text-secondary)' : '#64748b' }}
               >
                 Sign up to start your journey towards a better tomorrow.
               </p>
@@ -145,20 +148,20 @@ export default function Signup() {
                   <FiUser
                     className="absolute left-4 pointer-events-none"
                     size={18}
-                    style={{ color: isDark ? '#64748b' : '#94a3b8' }}
+                    style={{ color: isDark ? 'var(--text-secondary)' : '#94a3b8' }}
                   />
                   <input
                     type="text"
-                    className="w-full pl-11 pr-4 py-3 rounded-xl text-sm font-medium transition-all outline-none"
+                    className="signup-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-medium transition-all outline-none"
                     placeholder="Full name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
                     id="signup-name"
                     style={{
-                      background: isDark ? '#111726' : '#f8fafc',
-                      border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #e2e8f0',
-                      color: isDark ? '#f8fafc' : '#0f172a',
+                      background: isDark ? 'var(--input-bg)' : '#f8fafc',
+                      border: isDark ? '1px solid rgba(194, 197, 214, 0.22)' : '1px solid #e2e8f0',
+                      color: isDark ? 'var(--text-primary)' : '#0f172a',
                     }}
                   />
                 </div>
@@ -170,20 +173,20 @@ export default function Signup() {
                   <FiMail
                     className="absolute left-4 pointer-events-none"
                     size={18}
-                    style={{ color: isDark ? '#64748b' : '#94a3b8' }}
+                    style={{ color: isDark ? 'var(--text-secondary)' : '#94a3b8' }}
                   />
                   <input
                     type="email"
-                    className="w-full pl-11 pr-4 py-3 rounded-xl text-sm font-medium transition-all outline-none"
+                    className="signup-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-medium transition-all outline-none"
                     placeholder="Email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     id="signup-email"
                     style={{
-                      background: isDark ? '#111726' : '#f8fafc',
-                      border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #e2e8f0',
-                      color: isDark ? '#f8fafc' : '#0f172a',
+                      background: isDark ? 'var(--input-bg)' : '#f8fafc',
+                      border: isDark ? '1px solid rgba(194, 197, 214, 0.22)' : '1px solid #e2e8f0',
+                      color: isDark ? 'var(--text-primary)' : '#0f172a',
                     }}
                   />
                 </div>
@@ -195,30 +198,30 @@ export default function Signup() {
                   <FiLock
                     className="absolute left-4 pointer-events-none"
                     size={18}
-                    style={{ color: isDark ? '#64748b' : '#94a3b8' }}
+                    style={{ color: isDark ? 'var(--text-secondary)' : '#94a3b8' }}
                   />
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    className="w-full pl-11 pr-11 py-3 rounded-xl text-sm font-medium transition-all outline-none"
+                    className="signup-input w-full pl-11 pr-11 py-3 rounded-xl text-sm font-medium transition-all outline-none"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     id="signup-password"
                     style={{
-                      background: isDark ? '#111726' : '#f8fafc',
-                      border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #e2e8f0',
-                      color: isDark ? '#f8fafc' : '#0f172a',
+                      background: isDark ? 'var(--input-bg)' : '#f8fafc',
+                      border: isDark ? '1px solid rgba(194, 197, 214, 0.22)' : '1px solid #e2e8f0',
+                      color: isDark ? 'var(--text-primary)' : '#0f172a',
                     }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
                     className="absolute right-4 focus:outline-none transition-colors cursor-pointer"
-                    style={{ color: isDark ? '#64748b' : '#94a3b8' }}
+                    style={{ color: isDark ? 'var(--text-secondary)' : '#94a3b8' }}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                    {showPassword ? <FiEye size={18} /> : <FiEyeOff size={18} />}
                   </button>
                 </div>
 
@@ -266,7 +269,7 @@ export default function Signup() {
             {/* Bottom Link */}
             <p
               className="text-center text-sm mt-5"
-              style={{ color: isDark ? '#94a3b8' : '#64748b' }}
+              style={{ color: isDark ? 'var(--text-secondary)' : '#64748b' }}
             >
               Already have an account?{' '}
               <Link
