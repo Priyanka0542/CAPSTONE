@@ -9,7 +9,7 @@ An AI-powered decision-support platform that helps users choose and pursue caree
 ## 🌟 Features
 
 ### Core Features
-- 🎯 **AI-Generated Career Roadmaps** — Powered by Groq API (Llama-3) to create personalized career paths
+- 🎯 **AI-Generated Career Roadmaps** — Powered by Groq API (openai/gpt-oss-120b) to create personalized career paths
 - 📚 **Curated Learning Resources** — Real YouTube links, courses, and documentation for each milestone
 - 💼 **Job Opportunities** — Access to real job boards and company career pages when milestones are completed
 - 📊 **Multi-Path Comparison** — Compare 2-3 career paths side-by-side with visual charts
@@ -141,7 +141,7 @@ An AI-powered decision-support platform that helps users choose and pursue caree
 | **Express** | 4.21.0 | Web framework |
 | **MongoDB** | 6+ | NoSQL database |
 | **Mongoose** | 8.7.0 | ODM for MongoDB |
-| **Groq SDK** | 0.7.0 | AI API client (Llama-3) |
+| **Groq SDK** | 0.7.0 | AI API client (openai/gpt-oss-120b) |
 | **bcryptjs** | 2.4.3 | Password hashing |
 | **jsonwebtoken** | 9.0.2 | JWT authentication |
 | **Nodemailer** | 6.9.13 | Email sending (Gmail SMTP) |
@@ -314,6 +314,7 @@ JWT_REFRESH_SECRET=paste_a_different_random_64char_hex_string_here
 
 # Groq AI — sign up at https://console.groq.com and create an API key
 GROQ_API_KEY=gsk_your_key_here
+GROQ_MODEL=openai/gpt-oss-120b
 
 # Email Configuration (Gmail SMTP) — for password reset
 EMAIL_USER=youraddress@gmail.com
@@ -334,6 +335,7 @@ CLIENT_URL=http://localhost:5173
 | `JWT_ACCESS_SECRET` | Run `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` in your terminal. Copy the output. |
 | `JWT_REFRESH_SECRET` | Run the same command again to get a **different** random string. |
 | `GROQ_API_KEY` | Sign up at [console.groq.com](https://console.groq.com), go to API Keys, create a new key. Free tier gives generous limits. |
+| `GROQ_MODEL` | Model ID hosted on Groq (defaults to `openai/gpt-oss-120b`). |
 | `EMAIL_USER` | Your Gmail address for sending password reset emails |
 | `EMAIL_APP_PASSWORD` | Gmail App Password (see below) |
 | `PORT` | Keep as `5000` unless you have a conflict. |
@@ -480,9 +482,9 @@ Sign up with any email/password to get started.
 
 ## 🤖 AI Integration
 
-### Groq API (Llama-3)
+### Groq API (openai/gpt-oss-120b)
 
-The app uses Groq's API to power two AI features:
+The app uses Groq's API configured with the `openai/gpt-oss-120b` model to power core AI features:
 
 1. **Roadmap Generation**
    - Takes user's career goal and profile
@@ -677,7 +679,7 @@ MIT
 ## 🙏 Acknowledgments
 
 - **Groq** — For providing fast, free AI API access
-- **Llama-3** — The underlying AI model powering our roadmap generation
+- **openai/gpt-oss-120b** — The underlying AI model hosted on Groq powering our roadmap generation and mentor guidance
 - **React Community** — For the amazing ecosystem
 - **Tailwind CSS** — For the utility-first CSS framework
 
