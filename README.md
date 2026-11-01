@@ -15,8 +15,8 @@ An AI-powered decision-support platform that helps users choose and pursue caree
 - 📊 **Multi-Path Comparison** — Compare 2-3 career paths side-by-side with visual charts
 - 🔥 **Daily Streaks & Gamification** — 30-day heatmap tracking with achievement badges
 - 🗺️ **Timeline Tracking** — Month-by-month milestone completion with progress visualization
-- 🤖 **AI Mentor Chat** — "Evolve Me" — chat with your future self for personalized guidance
-- 👥 **Community Features** — Connect with peers pursuing similar career goals
+- 🤖 **AI Mentor Chat ("Evolve Me")** — Chat with your future self for concise, actionable guidance (at most 3 short sentences)
+- 👥 **Companions & Peer Benchmark** — Connect with peers and compare progress using canonical goal matching (e.g., IAS = Indian Administrative Services)
 - 🌌 **Beautiful Galaxy-Themed UI** — Dark mode with starfield background and light mode support
 - 📄 **PDF Export** — Generate detailed career path reports
 
@@ -26,6 +26,8 @@ An AI-powered decision-support platform that helps users choose and pursue caree
 - 🛡️ Password hashing with bcrypt (12 salt rounds)
 - ⚡ Rate limiting on sensitive routes
 - 🎫 httpOnly cookies for refresh tokens
+- 🖼️ **Split-Screen Authentication** — Redesigned Login and Sign-up with mode-aware illustrations (`auth-dark.png` / `auth-light.png`), leading input icons, and live password validation
+- 🚫 **Duplicate Goal Guard** — Duplicate active paths are caught before LLM generation (409 Conflict) without session disruption
 
 ### Advanced Features
 - 🎨 **Landing Page** — Modern landing page with hero section and feature highlights
@@ -204,12 +206,19 @@ CAPSTONE/
 │   │   ├── pathValidators.js
 │   │   ├── llmResponseSchema.js
 │   │   └── activityValidators.js
+│   ├── utils/
+│   │   └── goalKey.js        # Canonical goal key generation, alias map & Groq fallback
+│   ├── scripts/
+│   │   └── backfillGoalSlugs.js # One-time backfill script for canonical goalSlug
 │   └── seed.js               # Database seeding script
 │
 ├── client/                   # React frontend
 │   ├── public/               # Static assets
 │   │   ├── logo.png          # Brand logo
-│   │   └── dashboard-illustration.jpg
+│   │   ├── dashboard-illustration.jpg
+│   │   └── images/           # Authentication illustrations (dark & light)
+│   │       ├── auth-dark.png
+│   │       └── auth-light.png
 │   ├── package.json
 │   ├── index.html
 │   ├── vite.config.js
@@ -239,8 +248,10 @@ CAPSTONE/
 │       │   ├── community/    # ChatWindow, MemberList
 │       │   ├── landing/      # LandingHero
 │       │   └── onboarding/   # GoalInputForm
-│       │   ├── MentorChat.jsx  # AI mentor chat component
+│       │   ├── MentorChat.jsx  # AI mentor chat component ("Evolve Me")
 │       │   └── PeerBenchmark.jsx
+│       ├── utils/
+│       │   └── pathUtils.js      # Progress and timeline calculation utilities
 │       └── pages/
 │           ├── Landing.jsx         # Landing page
 │           ├── Login.jsx           # Login page
@@ -403,13 +414,15 @@ Sign up with any email/password to get started.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/paths` | Create path (triggers AI roadmap generation) |
+| POST | `/api/paths` | Create path (canonical duplicate check; triggers AI roadmap) |
 | GET | `/api/paths` | Get all user's paths |
 | GET | `/api/paths/:id` | Get single path details |
 | PATCH | `/api/paths/:id` | Update status / set focus path |
 | DELETE | `/api/paths/:id` | Soft delete (status: 'deleted') |
 | GET | `/api/paths/compare?ids=id1,id2` | Compare 2-3 paths side-by-side |
 | PATCH | `/api/paths/:id/milestone/:mid` | Complete a milestone |
+| POST | `/api/paths/:id/mentor-chat` | Chat with "Evolve Me" future-self mentor |
+| GET | `/api/paths/benchmark?goalSlug=...` | Peer progress & pace benchmark for canonical goal |
 
 ### Activity / Streaks / Badges (JWT required)
 
@@ -427,6 +440,7 @@ Sign up with any email/password to get started.
 | GET | `/api/community/:goalSlug/members` | Get members pursuing same goal |
 | GET | `/api/community/:goalSlug/messages` | Get chat messages |
 | POST | `/api/community/:goalSlug/messages` | Send chat message |
+| POST | `/api/community/:goalSlug/messages/:messageId/report` | Report message for moderation |
 
 ---
 
@@ -489,6 +503,14 @@ The app uses Groq's API to power two AI features:
      - Pace tracking
    - Context-aware responses
    - Encouraging but honest about progress
+   - Concise length constraint: replies in at most 3 short sentences (<60 words), plain text, focused on the immediate next step
+   - Bounded token limit (`max_tokens: 180`) to guarantee concise, non-rambling replies
+   - Simulation for decision-support, not future prediction
+
+3. **Canonical Goal Slug Resolution (`goalKey.js`)**
+   - Normalizes equivalent career goals into stable canonical keys (e.g., "IAS" ↔ "Indian Administrative Services" ↔ "UPSC CSE" → `ias`; "Software Engineer" ↔ "SDE" → `software-engineer`; "Doctor" ↔ "MBBS" → `doctor`)
+   - Uses an alias dictionary and initialism/acronym detection
+   - Safe Groq fallback: attempts a micro-call (`temperature: 0`, 3-second timeout) to resolve unseen goals, silently falling back to the deterministic key on timeout or error
 
 ---
 
@@ -579,6 +601,29 @@ Achievement badges are awarded automatically:
 5. Complete all milestones
 6. Click "💼 View Job Opportunities"
 7. Verify it shows real job boards and company career pages
+
+### Test Canonical Goal Matching & Companions
+
+1. Create a path titled "IAS" and another user creates "Indian Administrative Services".
+2. Notice both share the canonical `goalSlug: "ias"`, appearing in the same Companions chat room and Peer Benchmark metrics.
+3. To backfill existing database paths with canonical slugs, run:
+   ```bash
+   node server/scripts/backfillGoalSlugs.js
+   ```
+
+### Test Duplicate Goal Prevention
+
+1. Attempt to create a goal you already actively pursue (or an equivalent alias like "IAS" and "Indian Administrative Services").
+2. The system checks canonical `goalSlug` before calling the LLM and returns HTTP 409 Conflict.
+3. An inline message and toast announce: *"This path already exists. You already have a path for this goal."*
+4. You stay logged in, the modal remains open, and what you typed is preserved. Soft-deleting the old path allows creating it again.
+
+### Test "Evolve Me" Mentor Chat
+
+1. Click the floating "🤖 Evolve Me" action button on the Dashboard.
+2. The chat modal opens with the title "🤖 Evolve Me".
+3. Send a message asking about your next steps.
+4. Confirm responses are concise (at most 3 short sentences, under ~60 words), plain text, grounded in your roadmap progress.
 
 ---
 
