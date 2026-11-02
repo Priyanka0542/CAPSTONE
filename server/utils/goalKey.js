@@ -139,7 +139,7 @@ async function getCanonicalGoalKey(goalText, groqClient, model) {
     );
 
     const completionPromise = groqClient.chat.completions.create({
-      model: model || 'llama-3.3-70b-versatile',
+      model: model || 'openai/gpt-oss-120b',
       temperature: 0,
       max_tokens: 20,
       messages: [
