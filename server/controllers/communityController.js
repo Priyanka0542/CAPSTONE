@@ -1,44 +1,59 @@
 const CareerPath = require('../models/CareerPath');
 const CommunityMessage = require('../models/CommunityMessage');
 const User = require('../models/User');
+const { getGoalKey } = require('../utils/goalKey');
 
 // Basic profanity/spam filter (denylist)
 const PROFANITY_DENYLIST = [
   'fuck', 'shit', 'ass', 'bitch', 'damn', 'crap', 'bastard', 'whore', 'slut',
   'dick', 'pussy', 'cock', 'penis', 'vagina', 'sex', 'nude', 'naked',
-  'porn', 'xxx', 'kill', 'murder', 'die', 'suicide', 'rape', 'abuse'
+  'porn', 'xxx', 'kill', 'murder', 'die', 'suicide', 'rape', 'abuse',
 ];
 
 function containsProfanity(text) {
   const lowerText = text.toLowerCase();
-  return PROFANITY_DENYLIST.some(word => lowerText.includes(word));
+  return PROFANITY_DENYLIST.some((word) => lowerText.includes(word));
 }
 
 // Rate limit tracking (in-memory, per user)
 const userLastMessageTime = new Map();
 const RATE_LIMIT_MS = 3000; // 3 seconds
 
+// Helper to verify if user is pursuing this canonical career path
+async function isUserPursuingGoal(userId, canonicalSlug, rawSlug) {
+  const userPaths = await CareerPath.find({
+    userId,
+    status: { $ne: 'deleted' },
+  });
+
+  return userPaths.some(
+    (p) =>
+      p.goalSlug === canonicalSlug ||
+      p.goalSlug === rawSlug ||
+      getGoalKey(p.goalTitle) === canonicalSlug
+  );
+}
+
 // GET /api/community/:goalSlug/members
 exports.getMembers = async (req, res, next) => {
   try {
     const { goalSlug } = req.params;
     const currentUserId = req.user.userId;
-    const normalizedGoalSlug = (goalSlug || '').trim().toLowerCase();
+    const rawSlug = (goalSlug || '').trim().toLowerCase();
+    const canonicalSlug = getGoalKey(rawSlug);
 
-    // Verify current user is pursuing this path
-    const userPath = await CareerPath.findOne({
-      userId: currentUserId,
-      goalSlug: normalizedGoalSlug,
-      status: { $ne: 'deleted' },
-    });
-
-    if (!userPath) {
+    // Verify current user is pursuing this canonical path
+    const isPursuing = await isUserPursuingGoal(currentUserId, canonicalSlug, rawSlug);
+    if (!isPursuing) {
       return res.status(403).json({ message: 'You must be pursuing this career path to view its members.' });
     }
 
-    // Find all active/non-deleted paths for this goal to calculate accurate metrics
+    // Find all active/non-deleted paths for this canonical goal
     const allPaths = await CareerPath.find({
-      goalSlug: normalizedGoalSlug,
+      $or: [
+        { goalSlug: canonicalSlug },
+        { goalSlug: rawSlug },
+      ],
       status: { $ne: 'deleted' },
     }).populate('userId', 'name currentStreak');
 
@@ -79,29 +94,30 @@ exports.getMessages = async (req, res, next) => {
     const { goalSlug } = req.params;
     const { since } = req.query;
     const userId = req.user.userId;
-    const normalizedGoalSlug = (goalSlug || '').trim().toLowerCase();
+    const rawSlug = (goalSlug || '').trim().toLowerCase();
+    const canonicalSlug = getGoalKey(rawSlug);
 
     // Verify requesting user is pursuing this path
-    const userPath = await CareerPath.findOne({
-      userId,
-      goalSlug: normalizedGoalSlug,
-      status: { $ne: 'deleted' },
-    });
-
-    if (!userPath) {
+    const isPursuing = await isUserPursuingGoal(userId, canonicalSlug, rawSlug);
+    if (!isPursuing) {
       return res.status(403).json({ message: 'You must be pursuing this career path to view its messages.' });
     }
+
+    const slugFilter =
+      canonicalSlug === rawSlug
+        ? canonicalSlug
+        : { $in: [canonicalSlug, rawSlug] };
 
     let messages;
     if (since) {
       messages = await CommunityMessage.find({
-        goalSlug: normalizedGoalSlug,
+        goalSlug: slugFilter,
         createdAt: { $gt: new Date(since) },
       })
         .sort({ createdAt: 1 })
         .limit(100);
     } else {
-      const recent = await CommunityMessage.find({ goalSlug: normalizedGoalSlug })
+      const recent = await CommunityMessage.find({ goalSlug: slugFilter })
         .sort({ createdAt: -1 })
         .limit(100);
       messages = recent.reverse();
@@ -119,7 +135,8 @@ exports.postMessage = async (req, res, next) => {
     const { goalSlug } = req.params;
     const { message } = req.body;
     const userId = req.user.userId;
-    const normalizedGoalSlug = (goalSlug || '').trim().toLowerCase();
+    const rawSlug = (goalSlug || '').trim().toLowerCase();
+    const canonicalSlug = getGoalKey(rawSlug);
 
     // Rate limit check
     const lastMessageTime = userLastMessageTime.get(userId.toString());
@@ -146,14 +163,9 @@ exports.postMessage = async (req, res, next) => {
       return res.status(400).json({ message: 'Message contains inappropriate content.' });
     }
 
-    // Verify user has an active/non-deleted path with this goalSlug
-    const userPath = await CareerPath.findOne({
-      userId,
-      goalSlug: normalizedGoalSlug,
-      status: { $ne: 'deleted' },
-    });
-
-    if (!userPath) {
+    // Verify user is pursuing this path
+    const isPursuing = await isUserPursuingGoal(userId, canonicalSlug, rawSlug);
+    if (!isPursuing) {
       return res.status(403).json({ message: 'You must be pursuing this career path to post messages.' });
     }
 
@@ -161,9 +173,9 @@ exports.postMessage = async (req, res, next) => {
     const user = await User.findById(userId).select('name');
     const displayName = user?.name || 'Anonymous';
 
-    // Create message associated with this path and user
+    // Create message ALWAYS associated with canonicalSlug
     const newMessage = await CommunityMessage.create({
-      goalSlug: normalizedGoalSlug,
+      goalSlug: canonicalSlug,
       userId,
       displayName,
       message: message.trim(),
@@ -183,22 +195,18 @@ exports.reportMessage = async (req, res, next) => {
   try {
     const { goalSlug, messageId } = req.params;
     const userId = req.user.userId;
-    const normalizedGoalSlug = (goalSlug || '').trim().toLowerCase();
+    const rawSlug = (goalSlug || '').trim().toLowerCase();
+    const canonicalSlug = getGoalKey(rawSlug);
 
     // Verify user is pursuing this path
-    const userPath = await CareerPath.findOne({
-      userId,
-      goalSlug: normalizedGoalSlug,
-      status: { $ne: 'deleted' },
-    });
-
-    if (!userPath) {
+    const isPursuing = await isUserPursuingGoal(userId, canonicalSlug, rawSlug);
+    if (!isPursuing) {
       return res.status(403).json({ message: 'You must be pursuing this career path to report messages.' });
     }
 
     const message = await CommunityMessage.findOne({
       _id: messageId,
-      goalSlug: normalizedGoalSlug,
+      goalSlug: { $in: [canonicalSlug, rawSlug] },
     });
 
     if (!message) {

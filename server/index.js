@@ -6,6 +6,7 @@ const connectDB = require('./config/db');
 const env = require('./config/env');
 const errorHandler = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
+const { migrateCanonicalSlugs } = require('./utils/migrateSlugs');
 
 // Route imports
 const authRoutes = require('./routes/auth');
@@ -51,6 +52,11 @@ app.use(errorHandler);
 // Start server
 const start = async () => {
   await connectDB();
+  try {
+    await migrateCanonicalSlugs();
+  } catch (err) {
+    console.warn('[Server Startup] Warning during canonical slug migration:', err.message);
+  }
   app.listen(env.PORT, () => {
     console.log(`🚀 FutureEra server running on port ${env.PORT} (${env.NODE_ENV})`);
   });

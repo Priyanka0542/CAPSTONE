@@ -1,6 +1,6 @@
 const CareerPath = require('../models/CareerPath');
 const User = require('../models/User');
-const { generateRoadmap, mentorChat, resolveCanonicalSlug } = require('../services/llmService');
+const { generateRoadmap, mentorChat } = require('../services/llmService');
 const { checkAndAwardBadges } = require('../services/badgeService');
 const { getGoalKey } = require('../utils/goalKey');
 
@@ -18,15 +18,18 @@ exports.createPath = async (req, res, next) => {
     // Preserve the user's typed career goal intact (normalized whitespace)
     const displayGoal = rawGoal.replace(/\s+/g, ' ');
 
-    // Compute canonical goal slug (handles aliases like IAS / Indian Administrative Services)
-    const goalSlug = await resolveCanonicalSlug(displayGoal);
+    // Compute canonical goal slug deterministically
+    const goalSlug = getGoalKey(displayGoal);
 
     // Check if the user already has an active career path for this goal (BEFORE calling LLM)
-    const existingPath = await CareerPath.findOne({
+    const userPaths = await CareerPath.find({
       userId,
-      goalSlug,
       status: { $ne: 'deleted' },
     });
+
+    const existingPath = userPaths.find(
+      (p) => p.goalSlug === goalSlug || getGoalKey(p.goalTitle) === goalSlug
+    );
 
     if (existingPath) {
       return res.status(409).json({
@@ -94,6 +97,14 @@ exports.createPath = async (req, res, next) => {
 exports.getPaths = async (req, res, next) => {
   try {
     const paths = await CareerPath.find({ userId: req.user.userId }).sort({ createdAt: -1 });
+    // Ensure goalSlug is canonical on the fly in case of older un-migrated paths
+    for (const p of paths) {
+      const canonical = getGoalKey(p.goalTitle || p.goalSlug);
+      if (canonical && p.goalSlug !== canonical) {
+        p.goalSlug = canonical;
+        CareerPath.updateOne({ _id: p._id }, { $set: { goalSlug: canonical } }).exec();
+      }
+    }
     res.json({ paths });
   } catch (error) {
     next(error);
@@ -134,6 +145,12 @@ exports.getPath = async (req, res, next) => {
 
     if (!path) {
       return res.status(404).json({ message: 'Career path not found.' });
+    }
+
+    const canonical = getGoalKey(path.goalTitle || path.goalSlug);
+    if (canonical && path.goalSlug !== canonical) {
+      path.goalSlug = canonical;
+      CareerPath.updateOne({ _id: path._id }, { $set: { goalSlug: canonical } }).exec();
     }
 
     res.json({ path });
@@ -278,7 +295,8 @@ exports.mentorChat = async (req, res, next) => {
 exports.getPeerBenchmark = async (req, res, next) => {
   try {
     const { goalTitle, goalSlug: reqSlug } = req.query;
-    const canonicalSlug = reqSlug || (goalTitle ? getGoalKey(goalTitle) : null);
+    const raw = reqSlug || goalTitle;
+    const canonicalSlug = raw ? getGoalKey(raw) : null;
 
     if (!canonicalSlug && !goalTitle) {
       return res.status(400).json({ message: 'goalSlug or goalTitle is required.' });
