@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://futureera-backend.onrender.com/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://futureera-backend.onrender.com/api',
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });

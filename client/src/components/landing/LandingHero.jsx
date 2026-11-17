@@ -1,24 +1,26 @@
 import { Link } from 'react-router-dom';
+import ThemeToggle from '../common/ThemeToggle';
 
 export default function LandingHero({ onCreateGoal, showNav = true }) {
   return (
     <div className="min-h-screen">
       {/* Navigation */}
       {showNav && (
-        <nav className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="FutureEra Logo" className="h-10 w-auto" />
-            <div className="text-2xl font-extrabold tracking-tight">
+        <nav className="flex items-center justify-between px-4 sm:px-6 py-4 flex-wrap gap-2">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <img src="/logo.png" alt="FutureEra Logo" className="h-8 sm:h-10 w-auto" />
+            <div className="text-xl sm:text-2xl font-extrabold tracking-tight">
               <span className="text-comet-violet">Future</span>Era
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <Link to="/login" className="text-sm font-medium text-dust-gray hover:text-starlight transition-colors">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <ThemeToggle />
+            <Link to="/login" className="text-xs sm:text-sm font-medium text-dust-gray hover:text-starlight transition-colors px-1 py-1">
               Log in
             </Link>
             <button
               onClick={onCreateGoal}
-              className="btn-primary text-sm py-2 px-4"
+              className="btn-primary text-xs sm:text-sm py-1.5 px-3 sm:py-2 sm:px-4 whitespace-nowrap"
             >
               Get Started
             </button>
@@ -27,20 +29,20 @@ export default function LandingHero({ onCreateGoal, showNav = true }) {
       )}
 
       {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Content */}
-          <div className="space-y-8">
-            <h1 className="text-5xl lg:text-6xl font-extrabold text-starlight leading-tight">
+          <div className="space-y-6 sm:space-y-8">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-starlight leading-tight">
               Shape Your Future with AI
             </h1>
-            <p className="text-lg text-dust-gray leading-relaxed max-w-xl">
+            <p className="text-base sm:text-lg text-dust-gray leading-relaxed max-w-xl">
               Transform your career aspirations into actionable roadmaps. Our AI-powered platform creates personalized learning paths, tracks your progress, and connects you with opportunities to achieve your professional goals.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={onCreateGoal}
-                className="btn-primary text-base py-3 px-6 font-semibold"
+                className="btn-primary text-sm sm:text-base py-3 px-6 font-semibold w-full sm:w-auto"
               >
                 Create My Career Roadmap
               </button>
@@ -50,17 +52,17 @@ export default function LandingHero({ onCreateGoal, showNav = true }) {
           {/* Right Illustration */}
           <div className="relative">
             {/* Main illustration placeholder */}
-            <div className="relative bg-gradient-to-br from-comet-violet/20 to-aurora-teal/20 rounded-3xl p-8">
-              <div className="flex items-center justify-center min-h-[400px]">
+            <div className="relative bg-gradient-to-br from-comet-violet/20 to-aurora-teal/20 rounded-3xl p-4 sm:p-8">
+              <div className="flex items-center justify-center min-h-[240px] sm:min-h-[400px]">
                 <img
                   src="/dashboard-illustration.jpg"
                   alt="Woman working on laptop"
-                  className="max-w-full max-h-[400px] object-contain"
+                  className="max-w-full max-h-[240px] sm:max-h-[400px] object-contain rounded-2xl"
                 />
               </div>
 
-              {/* Feature Cards */}
-              <div className="absolute top-4 left-4 card p-4 shadow-lg animate-float" style={{ animationDelay: '0s' }}>
+              {/* Feature Cards - Floating on desktop (md+), hidden on mobile to avoid overlapping illustration */}
+              <div className="hidden md:block absolute top-4 left-4 card p-4 shadow-lg animate-float" style={{ animationDelay: '0s' }}>
                 <div className="flex items-center gap-3">
                   <div className="text-2xl">🎯</div>
                   <div>
@@ -70,7 +72,7 @@ export default function LandingHero({ onCreateGoal, showNav = true }) {
                 </div>
               </div>
 
-              <div className="absolute top-4 right-4 card p-4 shadow-lg animate-float" style={{ animationDelay: '0.5s' }}>
+              <div className="hidden md:block absolute top-4 right-4 card p-4 shadow-lg animate-float" style={{ animationDelay: '0.5s' }}>
                 <div className="flex items-center gap-3">
                   <div className="text-2xl">📚</div>
                   <div>
@@ -80,7 +82,7 @@ export default function LandingHero({ onCreateGoal, showNav = true }) {
                 </div>
               </div>
 
-              <div className="absolute bottom-4 left-4 card p-4 shadow-lg animate-float" style={{ animationDelay: '1s' }}>
+              <div className="hidden md:block absolute bottom-4 left-4 card p-4 shadow-lg animate-float" style={{ animationDelay: '1s' }}>
                 <div className="flex items-center gap-3">
                   <div className="text-2xl">🗺️</div>
                   <div>
@@ -90,7 +92,7 @@ export default function LandingHero({ onCreateGoal, showNav = true }) {
                 </div>
               </div>
 
-              <div className="absolute bottom-4 right-4 card p-4 shadow-lg animate-float" style={{ animationDelay: '1.5s' }}>
+              <div className="hidden md:block absolute bottom-4 right-4 card p-4 shadow-lg animate-float" style={{ animationDelay: '1.5s' }}>
                 <div className="flex items-center gap-3">
                   <div className="text-2xl">🎯</div>
                   <div>
@@ -100,11 +102,54 @@ export default function LandingHero({ onCreateGoal, showNav = true }) {
                 </div>
               </div>
             </div>
+
+            {/* Mobile Feature Cards (rendered in clean non-overlapping 2-col grid below image) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 md:hidden">
+              <div className="card p-3 shadow-md">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl flex-shrink-0">🎯</div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-starlight truncate">Find Your Career Path</p>
+                    <p className="text-[10px] text-dust-gray truncate">Discover your ideal career</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card p-3 shadow-md">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl flex-shrink-0">📚</div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-starlight truncate">Learn New Skills</p>
+                    <p className="text-[10px] text-dust-gray truncate">Curated learning resources</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card p-3 shadow-md">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl flex-shrink-0">🗺️</div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-starlight truncate">Build Your Roadmap</p>
+                    <p className="text-[10px] text-dust-gray truncate">Step-by-step guidance</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card p-3 shadow-md">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl flex-shrink-0">🎯</div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-starlight truncate">Achieve Your Goals</p>
+                    <p className="text-[10px] text-dust-gray truncate">Track your progress</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Feature Highlights */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mt-12 sm:mt-20">
           <div className="card p-6 text-center">
             <div className="text-4xl mb-4">🗺️</div>
             <h3 className="text-lg font-bold text-starlight mb-2">Personalized Roadmaps</h3>

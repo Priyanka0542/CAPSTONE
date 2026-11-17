@@ -22,9 +22,6 @@ export default function Landing() {
     <div className="min-h-screen relative">
       <Starfield />
       <div className="relative z-10">
-        <div className="absolute top-4 right-6">
-          <ThemeToggle />
-        </div>
         <LandingHero onCreateGoal={handleCreateGoal} />
       </div>
     </div>

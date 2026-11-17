@@ -423,7 +423,7 @@ export default function PathDetail() {
 
       <div className="relative z-10">
         <nav
-          className="flex items-center justify-between px-6 py-4 shadow-sm"
+          className="flex flex-wrap items-center justify-between px-3 sm:px-6 py-3 sm:py-4 gap-2 shadow-sm"
           style={{
             background: 'var(--card)',
             borderBottom: '1px solid var(--border)',
@@ -431,27 +431,27 @@ export default function PathDetail() {
         >
           <Link
             to="/dashboard"
-            className="flex items-center gap-3 hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity"
           >
-            <img src="/logo.png" alt="FutureEra Logo" className="h-8 w-auto" />
-            <span className="text-2xl font-extrabold text-starlight tracking-tight">
+            <img src="/logo.png" alt="FutureEra Logo" className="h-7 sm:h-8 w-auto" />
+            <span className="text-xl sm:text-2xl font-extrabold text-starlight tracking-tight">
               <span className="text-comet-violet">Future</span>Era
             </span>
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-wrap">
             <ThemeToggle />
 
             <button
               onClick={handleExportReport}
-              className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1"
+              className="btn-secondary text-xs py-1 px-2.5 sm:py-1.5 sm:px-3 flex items-center gap-1 whitespace-nowrap"
             >
               📄 Export report
             </button>
 
             <Link
               to="/dashboard"
-              className="btn-secondary text-xs py-1.5 px-3"
+              className="btn-secondary text-xs py-1 px-2.5 sm:py-1.5 sm:px-3 whitespace-nowrap"
             >
               ← Dashboard
             </Link>
@@ -463,7 +463,7 @@ export default function PathDetail() {
           <div className="card mb-6 animate-fadeIn">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 
-              <div>
+              <div className="flex-1 min-w-0">
                 <h1 className="text-2xl font-extrabold text-starlight mb-2 tracking-tight">
                   {path.goalTitle}
                 </h1>
@@ -523,7 +523,7 @@ export default function PathDetail() {
               className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-4"
               style={{ borderTop: '1px solid var(--border)' }}
             >
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-dust-gray uppercase tracking-wider mb-1">
                   Target Duration
                 </p>
@@ -532,7 +532,7 @@ export default function PathDetail() {
                 </p>
               </div>
 
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-dust-gray uppercase tracking-wider mb-1">
                   Target Deadline
                 </p>
@@ -541,7 +541,7 @@ export default function PathDetail() {
                 </p>
               </div>
 
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-dust-gray uppercase tracking-wider mb-1">
                   Time Remaining
                 </p>
@@ -550,7 +550,7 @@ export default function PathDetail() {
                 </p>
               </div>
 
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-dust-gray uppercase tracking-wider mb-1">
                   Weekly Workload
                 </p>
@@ -699,7 +699,7 @@ export default function PathDetail() {
             <div className="space-y-0 relative">
 
               <div
-                className="absolute left-[15px] top-0 bottom-0 w-[2px]"
+                className="absolute left-[11px] sm:left-[15px] top-0 bottom-0 w-[2px]"
                 style={{ background: 'var(--border)' }}
               />
 
@@ -718,11 +718,11 @@ export default function PathDetail() {
                 return (
                   <div
                     key={step._id}
-                    className="relative pl-10 pb-6"
+                    className="relative pl-8 sm:pl-10 pb-6"
                   >
 
                     <div
-                      className="absolute left-[9px] top-1 w-[14px] h-[14px] rounded-full border-2"
+                      className="absolute left-[5px] sm:left-[9px] top-1 w-[14px] h-[14px] rounded-full border-2"
                       style={{
                         borderColor: dotColor,
                         backgroundColor: step.completed
@@ -740,21 +740,21 @@ export default function PathDetail() {
                       }`}
                     >
 
-                      <div className="flex items-start justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
 
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <span className="text-xs font-bold text-comet-violet uppercase tracking-wider">
                             Month {step.month}
                           </span>
 
-                          <h3 className="text-base font-extrabold text-starlight mt-0.5">
+                          <h3 className="text-base font-extrabold text-starlight mt-0.5 break-words">
                             {step.milestone}
                           </h3>
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
                           <button
-                            className="btn-secondary text-[11px] py-1 px-3 flex items-center gap-1"
+                            className="btn-secondary text-[11px] py-1 px-2.5 sm:px-3 flex items-center gap-1"
                             onClick={() => handleOpenResources(step.milestone)}
                             title="View learning resources"
                           >
@@ -763,7 +763,7 @@ export default function PathDetail() {
 
                           {!step.completed && (
                             <button
-                              className="btn-secondary text-[11px] py-1 px-3"
+                              className="btn-secondary text-[11px] py-1 px-2.5 sm:px-3"
                               onClick={() =>
                                 handleCompleteMilestone(step._id)
                               }

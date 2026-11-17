@@ -62,16 +62,16 @@ export default function Compare() {
       <Starfield />
       <div className="relative z-10">
         {/* Nav */}
-        <nav className="flex items-center justify-between px-6 py-4 shadow-sm" style={{ background: 'var(--card)', borderBottom: '1px solid var(--border)' }}>
-          <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-            <img src="/logo.png" alt="FutureEra Logo" className="h-8 w-auto" />
-            <span className="text-2xl font-extrabold text-starlight tracking-tight">
+        <nav className="flex flex-wrap items-center justify-between px-3 sm:px-6 py-3 sm:py-4 gap-2 shadow-sm" style={{ background: 'var(--card)', borderBottom: '1px solid var(--border)' }}>
+          <Link to="/dashboard" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity">
+            <img src="/logo.png" alt="FutureEra Logo" className="h-7 sm:h-8 w-auto" />
+            <span className="text-xl sm:text-2xl font-extrabold text-starlight tracking-tight">
               <span className="text-comet-violet">Future</span>Era
             </span>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <Link to="/dashboard" className="btn-secondary text-xs py-1.5 px-3">← Dashboard</Link>
+            <Link to="/dashboard" className="btn-secondary text-xs py-1 px-2.5 sm:py-1.5 sm:px-3 whitespace-nowrap">← Dashboard</Link>
           </div>
         </nav>
 
@@ -105,7 +105,7 @@ export default function Compare() {
                         background: isSelected ? 'var(--surface-secondary)' : undefined,
                       }}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <div
                           className="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0"
                           style={{

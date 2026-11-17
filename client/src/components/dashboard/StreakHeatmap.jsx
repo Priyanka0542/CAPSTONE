@@ -41,7 +41,7 @@ export default function StreakHeatmap({ history, currentStreak, longestStreak })
       </div>
 
       {/* Heatmap grid */}
-      <div className="flex flex-wrap gap-1.5 justify-between">
+      <div className="grid grid-cols-10 gap-1.5 justify-items-center sm:justify-items-stretch">
         {days.map((day) => (
           <div
             key={day.dateStr}

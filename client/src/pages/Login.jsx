@@ -185,7 +185,7 @@ export default function Login() {
               </div>
 
               {/* Remember me & Forgot password */}
-              <div className="flex items-center justify-between text-xs sm:text-sm pt-1">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm pt-1">
                 <label
                   className="flex items-center gap-2 cursor-pointer select-none"
                   style={{ color: isDark ? 'var(--text-secondary)' : '#475569' }}

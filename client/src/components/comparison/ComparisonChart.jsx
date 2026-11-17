@@ -20,7 +20,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function ComparisonChart({ paths }) {
   const barData = paths.map((p) => ({
-    name: p.goalTitle.length > 20 ? p.goalTitle.slice(0, 20) + '...' : p.goalTitle,
+    name: p.goalTitle.length > 15 ? p.goalTitle.slice(0, 15) + '...' : p.goalTitle,
     'Duration (months)': p.estimatedMonths,
     'Cost (₹L)': Math.round(p.estimatedCostINR / 100000),
     'Est. Annual Salary (₹L/yr)': Math.round(p.estimatedOutcomeSalaryINR / 100000),

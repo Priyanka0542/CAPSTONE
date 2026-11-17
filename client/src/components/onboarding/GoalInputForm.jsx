@@ -62,7 +62,7 @@ export default function GoalInputForm({ onSubmit, loading, externalError, onClea
 
       {/* Target Timeline Section (Required) */}
       <div className="p-4 rounded-xl border" style={{ background: 'var(--secondary-surface)', borderColor: 'var(--input-border)' }}>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <label className="block text-xs font-semibold text-starlight uppercase tracking-wider">
             ⏱ Target Timeline <span className="text-meteor-red">*</span>
           </label>
@@ -146,7 +146,7 @@ export default function GoalInputForm({ onSubmit, loading, externalError, onClea
       </button>
 
       {showProfile && (
-        <div className="grid grid-cols-2 gap-3 animate-fadeIn">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fadeIn">
           <div>
             <label className="block text-xs text-dust-gray mb-1">Age</label>
             <input
@@ -169,7 +169,7 @@ export default function GoalInputForm({ onSubmit, loading, externalError, onClea
               id="profile-country"
             />
           </div>
-          <div className="col-span-2">
+          <div className="col-span-1 sm:col-span-2">
             <label className="block text-xs text-dust-gray mb-1">Current education / degree</label>
             <input
               type="text"
@@ -180,7 +180,7 @@ export default function GoalInputForm({ onSubmit, loading, externalError, onClea
               id="profile-degree"
             />
           </div>
-          <div className="col-span-2">
+          <div className="col-span-1 sm:col-span-2">
             <label className="block text-xs text-dust-gray mb-1">Budget (INR)</label>
             <input
               type="number"

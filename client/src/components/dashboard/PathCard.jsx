@@ -60,7 +60,9 @@ export default function PathCard({ path, isFocus, onSetFocus, onDelete }) {
             </span>
           </div>
         </div>
-        <ProgressRing progress={progress} size={56} strokeWidth={4} />
+        <div className="flex-shrink-0 ml-2">
+          <ProgressRing progress={progress} size={56} strokeWidth={4} />
+        </div>
       </div>
 
       {/* Primary Stats Grid */}
@@ -105,7 +107,7 @@ export default function PathCard({ path, isFocus, onSetFocus, onDelete }) {
       )}
 
       {/* Actions */}
-      <div className="flex gap-2 mt-3 pt-2" style={{ borderTop: '1px solid var(--card-border)' }}>
+      <div className="flex items-center gap-2 mt-3 pt-2 flex-wrap" style={{ borderTop: '1px solid var(--card-border)' }}>
         {!isFocus && !isCompleted && onSetFocus && (
           <button
             type="button"

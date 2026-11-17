@@ -116,19 +116,19 @@ export default function Dashboard() {
       <Starfield />
       <div className="relative z-10">
         {/* Nav */}
-        <nav className="flex items-center justify-between px-6 py-4 shadow-sm" style={{ background: 'var(--card-bg)', borderBottom: '1px solid var(--card-border)' }}>
-          <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-            <img src="/logo.png" alt="FutureEra Logo" className="h-8 w-auto" />
-            <span className="text-2xl font-extrabold text-starlight tracking-tight">
+        <nav className="flex flex-wrap items-center justify-between px-3 sm:px-6 py-3 sm:py-4 gap-2 shadow-sm" style={{ background: 'var(--card-bg)', borderBottom: '1px solid var(--card-border)' }}>
+          <Link to="/dashboard" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity">
+            <img src="/logo.png" alt="FutureEra Logo" className="h-7 sm:h-8 w-auto" />
+            <span className="text-xl sm:text-2xl font-extrabold text-starlight tracking-tight">
               <span className="text-comet-violet">Future</span>Era
             </span>
           </Link>
-          <div className="flex items-center gap-4 sm:gap-6">
-            <span className="text-sm font-semibold text-dust-gray hidden sm:block">Hey, {user?.name}</span>
+          <div className="flex items-center gap-1.5 sm:gap-4 flex-wrap">
+            <span className="text-sm font-semibold text-dust-gray hidden md:block">Hey, {user?.name}</span>
             <ThemeToggle />
-            <Link to="/community" className="btn-secondary text-xs py-1.5 px-3">Companions</Link>
-            <Link to="/compare" className="btn-secondary text-xs py-1.5 px-3">Compare</Link>
-            <button onClick={logout} className="text-sm font-medium text-dust-gray hover:text-meteor-red transition-colors cursor-pointer">
+            <Link to="/community" className="btn-secondary text-xs py-1 px-2.5 sm:py-1.5 sm:px-3 whitespace-nowrap">Companions</Link>
+            <Link to="/compare" className="btn-secondary text-xs py-1 px-2.5 sm:py-1.5 sm:px-3 whitespace-nowrap">Compare</Link>
+            <button onClick={logout} className="text-xs sm:text-sm font-medium text-dust-gray hover:text-meteor-red transition-colors cursor-pointer px-1 py-1">
               Log out
             </button>
           </div>
@@ -164,9 +164,9 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left: Paths */}
               <div className="lg:col-span-2 space-y-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-extrabold text-starlight tracking-tight">Active career paths</h2>
-                  <button className="btn-primary text-xs py-1.5" onClick={() => setShowNewGoal(true)}>
+                <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                  <h2 className="text-lg sm:text-xl font-extrabold text-starlight tracking-tight">Active career paths</h2>
+                  <button className="btn-primary text-xs py-1.5 px-3 whitespace-nowrap" onClick={() => setShowNewGoal(true)}>
                     + New goal
                   </button>
                 </div>
@@ -285,11 +285,11 @@ export default function Dashboard() {
             }
             setShowEvolveMe(true);
           }}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-40"
           style={{ background: 'linear-gradient(135deg, var(--comet-violet), var(--aurora-teal))' }}
           title="Evolve Me"
         >
-          <span className="text-2xl">🤖</span>
+          <span className="text-xl sm:text-2xl">🤖</span>
         </button>
       )}
 

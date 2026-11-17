@@ -19,7 +19,24 @@ const app = express();
 // Security
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CLIENT_URL,
+  origin: (origin, callback) => {
+    const list = [
+      'https://futureera.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+    ];
+    if (process.env.CLIENT_URL) {
+      process.env.CLIENT_URL.split(',').forEach((u) => {
+        const t = u.trim();
+        if (t && !list.includes(t)) list.push(t);
+      });
+    }
+    if (!origin || list.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
   credentials: true,
 }));
 

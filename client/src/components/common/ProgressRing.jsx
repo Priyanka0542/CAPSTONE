@@ -5,7 +5,7 @@ export default function ProgressRing({ progress, size = 80, strokeWidth = 6, col
   const offset = circumference - (pct / 100) * circumference;
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div className="relative inline-flex items-center justify-center flex-shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="transform -rotate-90">
         {/* Background ring */}
         <circle

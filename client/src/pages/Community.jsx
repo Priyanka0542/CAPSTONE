@@ -101,17 +101,17 @@ export default function Community() {
       <Starfield />
       <div className="relative z-10">
         {/* Nav */}
-        <nav className="flex items-center justify-between px-6 py-4 shadow-sm" style={{ background: 'var(--card-bg)', borderBottom: '1px solid var(--card-border)' }}>
-          <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-            <img src="/logo.png" alt="FutureEra Logo" className="h-8 w-auto" />
-            <span className="text-2xl font-extrabold text-starlight tracking-tight">
+        <nav className="flex flex-wrap items-center justify-between px-3 sm:px-6 py-3 sm:py-4 gap-2 shadow-sm" style={{ background: 'var(--card-bg)', borderBottom: '1px solid var(--card-border)' }}>
+          <Link to="/dashboard" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity">
+            <img src="/logo.png" alt="FutureEra Logo" className="h-7 sm:h-8 w-auto" />
+            <span className="text-xl sm:text-2xl font-extrabold text-starlight tracking-tight">
               <span className="text-comet-violet">Future</span>Era
             </span>
           </Link>
-          <div className="flex items-center gap-4 sm:gap-6">
-            <span className="text-sm font-semibold text-dust-gray hidden sm:block">Hey, {user?.name}</span>
+          <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+            <span className="text-sm font-semibold text-dust-gray hidden md:block">Hey, {user?.name}</span>
             <ThemeToggle />
-            <Link to="/dashboard" className="btn-secondary text-xs py-1.5 px-3">Dashboard</Link>
+            <Link to="/dashboard" className="btn-secondary text-xs py-1 px-2.5 sm:py-1.5 sm:px-3 whitespace-nowrap">Dashboard</Link>
           </div>
         </nav>
 
@@ -142,24 +142,24 @@ export default function Community() {
           )}
 
           {/* Main layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-250px)]">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[500px] lg:h-[calc(100vh-250px)]">
             {/* Left: Member list */}
             <div className="lg:col-span-1">
-              <div className="card h-full overflow-y-auto">
+              <div className="card max-h-60 lg:max-h-none lg:h-full overflow-y-auto">
                 <MemberList members={members} loading={membersLoading} />
               </div>
             </div>
 
             {/* Right: Chat window */}
             <div className="lg:col-span-2">
-              <div className="card h-full flex flex-col">
+              <div className="card min-h-[450px] lg:min-h-0 h-full flex flex-col">
                 <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--card-border)' }}>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs px-2 py-0.5 rounded bg-comet-violet/20 text-comet-violet font-semibold uppercase tracking-wider">
                         Path Group Chat
                       </span>
-                      <h2 className="text-lg font-bold text-starlight">
+                      <h2 className="text-base sm:text-lg font-bold text-starlight">
                         {selectedGoalTitle} Community
                       </h2>
                     </div>
